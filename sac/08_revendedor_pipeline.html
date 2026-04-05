@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Cicopal - Seja um Revendedor (Pipeline Comercial)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0c0e14; color: #e1e5ee; }
+  .layout { display: flex; height: 100vh; }
+
+  .sidebar { width: 56px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 2px; }
+  .sb-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: 17px; color: #6b7280; }
+  .sb-icon:hover { background: #1f2937; color: #e1e5ee; }
+  .sb-icon.active { background: #1E22A8; color: #fff; }
+  .sb-brand { width: 36px; height: 36px; background: linear-gradient(135deg, #1E22A8, #14B8A6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; color: white; margin-bottom: 10px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .header { height: 60px; background: #111827; border-bottom: 1px solid #1f2937; display: flex; align-items: center; padding: 0 28px; gap: 16px; }
+  .header h1 { font-size: 17px; display: flex; align-items: center; gap: 8px; }
+  .header h1 .emoji { font-size: 20px; }
+  .tabs { display: flex; gap: 3px; margin-left: 20px; }
+  .tab { padding: 6px 14px; border-radius: 6px; font-size: 12px; color: #9ca3af; cursor: pointer; }
+  .tab:hover { background: #1f2937; color: #e1e5ee; }
+  .tab.active { background: #14B8A6; color: #000; font-weight: 600; }
+  .hdr-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .hdr-right button { background: #1f2937; border: 1px solid #374151; color: #9ca3af; padding: 6px 14px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .hdr-right button:hover { background: #374151; color: #e1e5ee; }
+  .hdr-right button.primary { background: #14B8A6; color: #000; border-color: #14B8A6; font-weight: 600; }
+  .hdr-right select { background: #1f2937; border: 1px solid #374151; border-radius: 6px; padding: 6px 10px; color: #9ca3af; font-size: 11px; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+  /* KPI Row */
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+  .kpi { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; position: relative; overflow: hidden; }
+  .kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .kpi.teal::after { background: #14B8A6; }
+  .kpi.blue::after { background: #1E22A8; }
+  .kpi.yellow::after { background: #FDC41F; }
+  .kpi.green::after { background: #22c55e; }
+  .kpi.red::after { background: #E30513; }
+  .kpi .label { font-size: 10px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi .value { font-size: 26px; font-weight: 700; }
+  .kpi .value.teal { color: #14B8A6; }
+  .kpi .value.blue { color: #60a5fa; }
+  .kpi .value.yellow { color: #FDC41F; }
+  .kpi .value.green { color: #22c55e; }
+  .kpi .value.red { color: #E30513; }
+  .kpi .sub { font-size: 10px; color: #6b7280; margin-top: 2px; }
+
+  /* Pipeline Kanban */
+  .pipeline { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+  .pipeline-col { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; }
+  .pipeline-col-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #1f2937; }
+  .pipeline-col-header .col-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .pipeline-col-header .col-title { font-size: 12px; font-weight: 600; }
+  .pipeline-col-header .col-count { margin-left: auto; font-size: 10px; background: #1f2937; padding: 2px 7px; border-radius: 8px; color: #9ca3af; }
+  .pipeline-cards { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+
+  .lead-card { background: #0c0e14; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; cursor: pointer; transition: all .15s; }
+  .lead-card:hover { border-color: #14B8A644; background: #0f1629; }
+  .lead-card .lead-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+  .lead-card .lead-info { font-size: 10px; color: #6b7280; margin-bottom: 6px; line-height: 1.5; }
+  .lead-card .lead-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 6px; }
+  .lead-tag { font-size: 8px; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+  .lead-tag.micos { background: #E3051333; color: #fca5a5; }
+  .lead-tag.crony { background: #FDC41F33; color: #FDC41F; }
+  .lead-tag.refinata { background: #1E22A833; color: #818cf8; }
+  .lead-tag.nelita { background: #14B8A633; color: #14B8A6; }
+  .lead-tag.sullper { background: #f9731633; color: #fdba74; }
+  .lead-tag.all { background: #37415166; color: #e1e5ee; }
+  .lead-card .lead-footer { display: flex; align-items: center; justify-content: space-between; font-size: 9px; color: #6b7280; }
+  .lead-card .lead-footer .channel { display: flex; align-items: center; gap: 3px; }
+  .lead-card .lead-footer .time { }
+  .lead-card .lead-source { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #14B8A6; margin-bottom: 4px; }
+
+  /* Priority indicator */
+  .lead-pri { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+  .lead-pri .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .lead-pri .dot.high { background: #FDC41F; }
+  .lead-pri .dot.medium { background: #1E22A8; }
+  .lead-pri .dot.low { background: #6b7280; }
+  .lead-pri .text { font-size: 9px; color: #6b7280; }
+
+  /* Geographic section */
+  .section-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #9ca3af; display: flex; align-items: center; gap: 8px; }
+  .section-title .line { flex: 1; height: 1px; background: #1f2937; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-header h3 { font-size: 13px; font-weight: 600; }
+  .card-header .action { font-size: 11px; color: #14B8A6; cursor: pointer; }
+
+  /* Region list */
+  .region-list { display: flex; flex-direction: column; gap: 8px; }
+  .region-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #0c0e14; border-radius: 6px; }
+  .region-item .region-name { font-size: 12px; font-weight: 500; min-width: 100px; }
+  .region-item .region-bar { flex: 1; height: 16px; background: #1f2937; border-radius: 3px; overflow: hidden; }
+  .region-item .region-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; padding-left: 6px; font-size: 8px; font-weight: 600; }
+  .region-item .region-count { font-size: 11px; min-width: 30px; text-align: right; font-weight: 600; }
+
+  /* Brand interest */
+  .brand-interest { display: flex; gap: 10px; flex-wrap: wrap; }
+  .brand-card { background: #0c0e14; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; text-align: center; flex: 1; min-width: 80px; }
+  .brand-card .b-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 800; color: white; margin: 0 auto 6px; }
+  .brand-card .b-name { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+  .brand-card .b-pct { font-size: 18px; font-weight: 700; color: #14B8A6; }
+  .brand-card .b-count { font-size: 9px; color: #6b7280; }
+
+  /* Recent activity */
+  .activity-list { display: flex; flex-direction: column; gap: 6px; }
+  .activity-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px; font-size: 11px; border-left: 2px solid #1f2937; }
+  .activity-item.new { border-left-color: #14B8A6; }
+  .activity-item.moved { border-left-color: #1E22A8; }
+  .activity-item.won { border-left-color: #22c55e; }
+  .activity-item.lost { border-left-color: #E30513; }
+  .activity-item .a-time { color: #6b7280; font-size: 9px; min-width: 50px; }
+  .activity-item .a-text { flex: 1; color: #9ca3af; }
+  .activity-item .a-text strong { color: #e1e5ee; }
+
+  .watermark { position: fixed; bottom: 6px; right: 16px; font-size: 10px; color: #1f2937; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-brand">SAC</div>
+    <div class="sb-icon" title="Dashboard">&#128200;</div>
+    <div class="sb-icon" title="Inbox">&#128233;</div>
+    <div class="sb-icon" title="Knowledge Base">&#128218;</div>
+    <div class="sb-icon" title="Analytics">&#128202;</div>
+    <div class="sb-icon active" title="Revendedor">&#129309;</div>
+    <div class="sb-icon" title="Config" style="margin-top:auto;margin-bottom:12px;">&#9881;</div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1><span class="emoji">&#129309;</span> Seja um Revendedor</h1>
+      <div class="tabs">
+        <div class="tab active">Pipeline</div>
+        <div class="tab">Mapa</div>
+        <div class="tab">Historico</div>
+        <div class="tab">Relatorios</div>
+      </div>
+      <div class="hdr-right">
+        <select>
+          <option>Ultimos 30 dias</option>
+          <option>Este mes</option>
+          <option>Ultimo trimestre</option>
+        </select>
+        <button>Exportar</button>
+        <button class="primary">+ Novo Lead Manual</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi teal">
+          <div class="label">Leads Novos (Mes)</div>
+          <div class="value teal">23</div>
+          <div class="sub">+8 vs mes anterior</div>
+        </div>
+        <div class="kpi blue">
+          <div class="label">Em Qualificacao</div>
+          <div class="value blue">9</div>
+          <div class="sub">Aguardando analise comercial</div>
+        </div>
+        <div class="kpi yellow">
+          <div class="label">Em Negociacao</div>
+          <div class="value yellow">5</div>
+          <div class="sub">Proposta enviada</div>
+        </div>
+        <div class="kpi green">
+          <div class="label">Convertidos (Mes)</div>
+          <div class="value green">6</div>
+          <div class="sub">Taxa conversao: 26%</div>
+        </div>
+        <div class="kpi red">
+          <div class="label">Tempo Med. Conversao</div>
+          <div class="value red">4.2d</div>
+          <div class="sub">Do contato ao contrato</div>
+        </div>
+      </div>
+
+      <!-- Pipeline Kanban -->
+      <div class="section-title">Pipeline de Revendedores <div class="line"></div></div>
+      <div class="pipeline">
+        <!-- Novo Contato -->
+        <div class="pipeline-col">
+          <div class="pipeline-col-header">
+            <div class="col-dot" style="background:#14B8A6;"></div>
+            <div class="col-title">Novo Contato</div>
+            <div class="col-count">6</div>
+          </div>
+          <div class="pipeline-cards">
+            <div class="lead-card">
+              <div class="lead-source">&#128172; WhatsApp &#8226; Chatbot</div>
+              <div class="lead-name">Distribuidora Norte AM</div>
+              <div class="lead-info">Manaus, AM &#8226; CNPJ informado<br/>Quer ampliar Crony e Micos na regiao</div>
+              <div class="lead-tags">
+                <span class="lead-tag crony">Crony</span>
+                <span class="lead-tag micos">Micos</span>
+              </div>
+              <div class="lead-pri"><div class="dot high"></div><span class="text">Alta - Grande porte</span></div>
+              <div class="lead-footer">
+                <span class="channel">&#128172; WhatsApp</span>
+                <span class="time">8min atras</span>
+              </div>
+            </div>
+            <div class="lead-card">
+              <div class="lead-source">&#127760; Site &#8226; Formulario</div>
+              <div class="lead-name">Mercearia Sabor do Norte</div>
+              <div class="lead-info">Porto Velho, RO &#8226; Pequeno porte<br/>Interesse em toda linha</div>
+              <div class="lead-tags">
+                <span class="lead-tag all">Todas marcas</span>
+              </div>
+              <div class="lead-pri"><div class="dot medium"></div><span class="text">Media</span></div>
+              <div class="lead-footer">
+                <span class="channel">&#127760; Site</span>
+                <span class="time">2h atras</span>
+              </div>
+            </div>
+            <div class="lead-card">
+              <div class="lead-source">&#128172; WhatsApp &#8226; Chatbot</div>
+              <div class="lead-name">Atacadao Popular</div>
+              <div class="lead-info">Feira de Santana, BA &#8226; Medio porte<br/>Ja revende concorrente, quer testar Cicopal</div>
+              <div class="lead-tags">
+                <span class="lead-tag refinata">Refinata</span>
+                <span class="lead-tag nelita">Nelita</span>
+              </div>
+              <div class="lead-pri"><div class="dot high"></div><span class="text">Alta - Vem de concorrente</span></div>
+              <div class="lead-footer">
+                <span class="channel">&#128172; WhatsApp</span>
+                <span class="time">5h atras</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Qualificacao -->
+        <div class="pipeline-col">
+          <div class="pipeline-col-header">
+            <div class="col-dot" style="background:#1E22A8;"></div>
+            <div class="col-title">Qualificacao</div>
+            <div class="col-count">4</div>
+          </div>
+          <div class="pipeline-cards">
+            <div class="lead-card">
+              <div class="lead-source">Vendedor: Ricardo S.</div>
+              <div class="lead-name">Rede SuperBom (3 lojas)</div>
+              <div class="lead-info">Belem, PA &#8226; Grande porte<br/>CNPJ validado &#10003; &#8226; Credito: Aprovado &#10003;</div>
+              <div class="lead-tags">
+                <span class="lead-tag all">Todas marcas</span>
+              </div>
+              <div class="lead-pri"><div class="dot high"></div><span class="text">Alta - Rede 3 lojas</span></div>
+              <div class="lead-footer">
+                <span>Aguardando visita</span>
+                <span class="time">1 dia</span>
+              </div>
+            </div>
+            <div class="lead-card">
+              <div class="lead-source">Vendedor: Ana P.</div>
+              <div class="lead-name">Emporio da Esquina</div>
+              <div class="lead-info">Goiania, GO &#8226; Pequeno porte<br/>CNPJ validado &#10003; &#8226; Credito: Pendente</div>
+              <div class="lead-tags">
+                <span class="lead-tag micos">Micos</span>
+                <span class="lead-tag sullper">Sullper</span>
+              </div>
+              <div class="lead-pri"><div class="dot medium"></div><span class="text">Media</span></div>
+              <div class="lead-footer">
+                <span>Analise credito</span>
+                <span class="time">2 dias</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Negociacao -->
+        <div class="pipeline-col">
+          <div class="pipeline-col-header">
+            <div class="col-dot" style="background:#FDC41F;"></div>
+            <div class="col-title">Negociacao</div>
+            <div class="col-count">3</div>
+          </div>
+          <div class="pipeline-cards">
+            <div class="lead-card">
+              <div class="lead-source">Vendedor: Ricardo S.</div>
+              <div class="lead-name">Distrib. Amazonia Food</div>
+              <div class="lead-info">Manaus, AM &#8226; Grande porte<br/>Proposta enviada: pedido minimo 500cx<br/>Aguardando resposta</div>
+              <div class="lead-tags">
+                <span class="lead-tag crony">Crony</span>
+                <span class="lead-tag refinata">Refinata</span>
+                <span class="lead-tag micos">Micos</span>
+              </div>
+              <div class="lead-footer">
+                <span style="color:#FDC41F;">Proposta aberta</span>
+                <span class="time">3 dias</span>
+              </div>
+            </div>
+            <div class="lead-card">
+              <div class="lead-source">Vendedor: Ana P.</div>
+              <div class="lead-name">Mercadinho Central</div>
+              <div class="lead-info">Maraba, PA &#8226; Medio porte<br/>Contra-proposta recebida: quer 10% desc.</div>
+              <div class="lead-tags">
+                <span class="lead-tag micos">Micos</span>
+                <span class="lead-tag nelita">Nelita</span>
+              </div>
+              <div class="lead-footer">
+                <span style="color:#FDC41F;">Contra-proposta</span>
+                <span class="time">5 dias</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ganho -->
+        <div class="pipeline-col">
+          <div class="pipeline-col-header">
+            <div class="col-dot" style="background:#22c55e;"></div>
+            <div class="col-title">Ganho &#10003;</div>
+            <div class="col-count">6</div>
+          </div>
+          <div class="pipeline-cards">
+            <div class="lead-card" style="border-color:#22c55e33;">
+              <div class="lead-name">Rede Mais Voce (5 lojas)</div>
+              <div class="lead-info">Rio Branco, AC &#8226; Grande porte<br/>Pedido inicial: 1.200 caixas<br/>&#10003; Contrato assinado</div>
+              <div class="lead-tags">
+                <span class="lead-tag all">Todas marcas</span>
+              </div>
+              <div class="lead-footer">
+                <span style="color:#22c55e;">Convertido</span>
+                <span class="time">Ontem</span>
+              </div>
+            </div>
+            <div class="lead-card" style="border-color:#22c55e33;">
+              <div class="lead-name">Atacado Nordestao</div>
+              <div class="lead-info">Camacari, BA &#8226; Medio porte<br/>Pedido inicial: 400 caixas</div>
+              <div class="lead-tags">
+                <span class="lead-tag micos">Micos</span>
+                <span class="lead-tag crony">Crony</span>
+              </div>
+              <div class="lead-footer">
+                <span style="color:#22c55e;">Convertido</span>
+                <span class="time">3 dias</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Perdido -->
+        <div class="pipeline-col">
+          <div class="pipeline-col-header">
+            <div class="col-dot" style="background:#E30513;"></div>
+            <div class="col-title">Perdido</div>
+            <div class="col-count">3</div>
+          </div>
+          <div class="pipeline-cards">
+            <div class="lead-card" style="opacity: 0.6;">
+              <div class="lead-name">Mini Mercado ABC</div>
+              <div class="lead-info">Palmas, TO<br/>Motivo: Volume minimo alto demais</div>
+              <div class="lead-footer">
+                <span style="color:#E30513;">Perdido</span>
+                <span class="time">5 dias</span>
+              </div>
+            </div>
+            <div class="lead-card" style="opacity: 0.6;">
+              <div class="lead-name">Emporio Gourmet</div>
+              <div class="lead-info">Cuiaba, MT<br/>Motivo: Ja fechou com concorrente</div>
+              <div class="lead-footer">
+                <span style="color:#E30513;">Perdido</span>
+                <span class="time">1 sem</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom row -->
+      <div class="grid-3">
+        <!-- Region distribution -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Leads por Regiao</h3>
+            <span class="action">Ver mapa</span>
+          </div>
+          <div class="region-list">
+            <div class="region-item">
+              <div class="region-name">Norte</div>
+              <div class="region-bar"><div class="region-fill" style="width:38%; background:#14B8A6;">38%</div></div>
+              <div class="region-count" style="color:#14B8A6;">9</div>
+            </div>
+            <div class="region-item">
+              <div class="region-name">Nordeste</div>
+              <div class="region-bar"><div class="region-fill" style="width:26%; background:#1E22A8;">26%</div></div>
+              <div class="region-count" style="color:#60a5fa;">6</div>
+            </div>
+            <div class="region-item">
+              <div class="region-name">Centro-Oeste</div>
+              <div class="region-bar"><div class="region-fill" style="width:22%; background:#FDC41F;">22%</div></div>
+              <div class="region-count" style="color:#FDC41F;">5</div>
+            </div>
+            <div class="region-item">
+              <div class="region-name">Sudeste</div>
+              <div class="region-bar"><div class="region-fill" style="width:10%; background:#8b5cf6;">10%</div></div>
+              <div class="region-count" style="color:#8b5cf6;">2</div>
+            </div>
+            <div class="region-item">
+              <div class="region-name">Sul</div>
+              <div class="region-bar"><div class="region-fill" style="width:4%; background:#6b7280;">4%</div></div>
+              <div class="region-count" style="color:#6b7280;">1</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brand interest -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Interesse por Marca</h3>
+          </div>
+          <div class="brand-interest">
+            <div class="brand-card">
+              <div class="b-icon" style="background:#E30513;">M</div>
+              <div class="b-name">Micos</div>
+              <div class="b-pct">78%</div>
+              <div class="b-count">18 leads</div>
+            </div>
+            <div class="brand-card">
+              <div class="b-icon" style="background:#FDC41F;color:#000;">C</div>
+              <div class="b-name">Crony</div>
+              <div class="b-pct">65%</div>
+              <div class="b-count">15 leads</div>
+            </div>
+            <div class="brand-card">
+              <div class="b-icon" style="background:#1E22A8;">R</div>
+              <div class="b-name">Refinata</div>
+              <div class="b-pct">52%</div>
+              <div class="b-count">12 leads</div>
+            </div>
+            <div class="brand-card">
+              <div class="b-icon" style="background:#14B8A6;color:#000;">N</div>
+              <div class="b-name">Nelita</div>
+              <div class="b-pct">39%</div>
+              <div class="b-count">9 leads</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Atividade Recente</h3>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item new">
+              <span class="a-time">8min</span>
+              <span class="a-text"><strong>Distrib. Norte AM</strong> entrou via WhatsApp chatbot. Lead criado automaticamente.</span>
+            </div>
+            <div class="activity-item won">
+              <span class="a-time">Ontem</span>
+              <span class="a-text"><strong>Rede Mais Voce</strong> convertido! Contrato assinado, 1.200 cx. Vendedor: Ricardo S.</span>
+            </div>
+            <div class="activity-item moved">
+              <span class="a-time">2 dias</span>
+              <span class="a-text"><strong>Rede SuperBom</strong> movido para Qualificacao. CNPJ e credito aprovados.</span>
+            </div>
+            <div class="activity-item lost">
+              <span class="a-time">5 dias</span>
+              <span class="a-text"><strong>Mini Mercado ABC</strong> perdido. Volume minimo incompativel.</span>
+            </div>
+            <div class="activity-item new">
+              <span class="a-time">1 sem</span>
+              <span class="a-text"><strong>Atacado Nordestao</strong> entrou via formulario do site. Atribuido a Ana P.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="watermark">WIREFRAME - SAC Cicopal | Seja um Revendedor - Pipeline Comercial v1.0</div>
+</body>
+</html>

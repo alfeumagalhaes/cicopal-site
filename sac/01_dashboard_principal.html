@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Cicopal - Dashboard Principal</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0c0e14; color: #e1e5ee; }
+  .layout { display: flex; height: 100vh; }
+
+  /* Sidebar */
+  .sidebar { width: 250px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; }
+  .sidebar-brand { padding: 18px 20px; border-bottom: 1px solid #1f2937; display: flex; align-items: center; gap: 12px; }
+  .brand-logo { width: 40px; height: 40px; background: linear-gradient(135deg, #1E22A8, #14B8A6); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: white; }
+  .brand-text h2 { font-size: 15px; color: #e1e5ee; }
+  .brand-text small { font-size: 10px; color: #6b7280; }
+
+  .sidebar-nav { flex: 1; padding: 8px 10px; overflow-y: auto; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #9ca3af; margin-bottom: 2px; transition: all .15s; }
+  .nav-item:hover { background: #1f2937; color: #e1e5ee; }
+  .nav-item.active { background: linear-gradient(135deg, #1E22A8, #1a1fa0); color: #fff; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-item .badge { margin-left: auto; background: #E30513; color: white; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+  .nav-item .badge.warn { background: #f59e0b; color: #000; }
+  .nav-item .badge.info { background: #1E22A8; }
+  .nav-section { font-size: 9px; text-transform: uppercase; color: #4b5563; padding: 16px 14px 6px; letter-spacing: 1.2px; font-weight: 600; }
+
+  .sidebar-footer { padding: 12px 14px; border-top: 1px solid #1f2937; display: flex; align-items: center; gap: 10px; }
+  .sidebar-footer .avatar { width: 32px; height: 32px; background: #14B8A6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #000; }
+  .sidebar-footer .user-info { font-size: 12px; }
+  .sidebar-footer .user-info .name { font-weight: 600; }
+  .sidebar-footer .user-info .role { color: #6b7280; font-size: 10px; }
+
+  /* Main */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Header */
+  .header { height: 60px; background: #111827; border-bottom: 1px solid #1f2937; display: flex; align-items: center; padding: 0 28px; gap: 16px; }
+  .header h1 { font-size: 17px; font-weight: 600; }
+  .header .company-tag { background: #1E22A8; color: white; padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .search-box { background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 7px 14px; color: #9ca3af; font-size: 12px; width: 280px; }
+  .search-box:focus { outline: none; border-color: #1E22A8; }
+  .notif-bell { position: relative; cursor: pointer; font-size: 20px; }
+  .notif-bell .dot { position: absolute; top: -3px; right: -5px; width: 9px; height: 9px; background: #E30513; border-radius: 50%; border: 2px solid #111827; }
+
+  /* Content */
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+  /* Welcome banner */
+  .welcome-banner { background: linear-gradient(135deg, #1E22A8 0%, #14B8A6 100%); border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+  .welcome-text h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .welcome-text p { font-size: 13px; opacity: 0.85; }
+  .welcome-stats { display: flex; gap: 24px; }
+  .welcome-stat { text-align: center; background: rgba(255,255,255,0.15); padding: 10px 18px; border-radius: 10px; }
+  .welcome-stat .val { font-size: 22px; font-weight: 700; }
+  .welcome-stat .lab { font-size: 10px; opacity: 0.8; }
+
+  /* KPI Cards */
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
+  .kpi-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 18px; position: relative; overflow: hidden; }
+  .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .kpi-card.blue::after { background: #1E22A8; }
+  .kpi-card.green::after { background: #14B8A6; }
+  .kpi-card.red::after { background: #E30513; }
+  .kpi-card.yellow::after { background: #FDC41F; }
+  .kpi-card.purple::after { background: #8b5cf6; }
+  .kpi-card .label { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
+  .kpi-card .value { font-size: 28px; font-weight: 700; }
+  .kpi-card .value.blue { color: #60a5fa; }
+  .kpi-card .value.green { color: #14B8A6; }
+  .kpi-card .value.red { color: #E30513; }
+  .kpi-card .value.yellow { color: #FDC41F; }
+  .kpi-card .value.purple { color: #8b5cf6; }
+  .kpi-card .trend { font-size: 10px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .kpi-card .trend.up { color: #14B8A6; }
+  .kpi-card .trend.down { color: #E30513; }
+
+  /* Grid layouts */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-7-3 { display: grid; grid-template-columns: 7fr 3fr; gap: 16px; margin-bottom: 16px; }
+
+  /* Cards */
+  .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .card-header h3 { font-size: 14px; font-weight: 600; }
+  .card-header .action { font-size: 11px; color: #14B8A6; cursor: pointer; }
+
+  /* Chart bars */
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 170px; padding: 10px 0; }
+  .chart-bar { flex: 1; border-radius: 4px 4px 0 0; min-width: 20px; position: relative; transition: opacity .2s; }
+  .chart-bar:hover { opacity: 0.8; }
+  .chart-bar .bar-label { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 9px; color: #6b7280; white-space: nowrap; }
+  .chart-bar .bar-val { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 9px; color: #9ca3af; font-weight: 600; }
+
+  /* Donut chart */
+  .donut-container { display: flex; align-items: center; gap: 24px; }
+  .donut { width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(#E30513 0% 28%, #1E22A8 28% 48%, #14B8A6 48% 64%, #FDC41F 64% 76%, #8b5cf6 76% 86%, #f97316 86% 93%, #6b7280 93% 100%); position: relative; flex-shrink: 0; }
+  .donut::after { content: '324'; position: absolute; top: 28px; left: 28px; right: 28px; bottom: 28px; background: #111827; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; color: #e1e5ee; }
+  .donut-legend { display: flex; flex-direction: column; gap: 6px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #9ca3af; }
+  .legend-item .dot { width: 8px; height: 8px; border-radius: 3px; flex-shrink: 0; }
+  .legend-item .pct { margin-left: auto; font-weight: 600; color: #e1e5ee; min-width: 32px; text-align: right; }
+
+  /* Ticket list */
+  .ticket-list { display: flex; flex-direction: column; gap: 6px; }
+  .ticket-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #0c0e14; border-radius: 8px; font-size: 12px; cursor: pointer; transition: background .15s; border-left: 3px solid transparent; }
+  .ticket-item:hover { background: #1f2937; }
+  .ticket-item.urgent { border-left-color: #E30513; background: #110c0c; }
+  .ticket-item.warning { border-left-color: #FDC41F; }
+  .ticket-number { color: #60a5fa; font-weight: 600; min-width: 82px; font-size: 11px; }
+  .ticket-subject { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ticket-cat { padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: 0.3px; }
+  .ticket-cat.rec { background: #450a0a; color: #fca5a5; }
+  .ticket-cat.sol { background: #0c1a3d; color: #93c5fd; }
+  .ticket-cat.vis { background: #052e16; color: #86efac; }
+  .ticket-cat.inf { background: #1e1b4b; color: #c4b5fd; }
+  .ticket-cat.tro { background: #431407; color: #fdba74; }
+  .ticket-cat.rev { background: #1c1917; color: #a8a29e; }
+  .ticket-cat.fin { background: #3b0764; color: #d8b4fe; }
+  .ticket-cat.elo { background: #052e16; color: #86efac; }
+  .ticket-priority { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .ticket-priority.critical { background: #E30513; animation: pulse 1.5s infinite; }
+  .ticket-priority.high { background: #FDC41F; }
+  .ticket-priority.medium { background: #1E22A8; }
+  .ticket-priority.low { background: #6b7280; }
+  .ticket-sentiment { font-size: 14px; }
+  .ticket-time { color: #6b7280; font-size: 10px; min-width: 50px; text-align: right; }
+  .ticket-channel { font-size: 12px; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* Alert list */
+  .alert-list { display: flex; flex-direction: column; gap: 8px; }
+  .alert-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; background: #0c0e14; border-radius: 8px; font-size: 12px; border-left: 3px solid transparent; }
+  .alert-item.critical { border-left-color: #E30513; background: #110c0c; }
+  .alert-item.warning { border-left-color: #FDC41F; background: #11100c; }
+  .alert-item.info { border-left-color: #1E22A8; }
+  .alert-item .alert-icon { font-size: 18px; flex-shrink: 0; }
+  .alert-item .alert-text { flex: 1; }
+  .alert-item .alert-text strong { display: block; margin-bottom: 2px; }
+  .alert-item .alert-text small { color: #6b7280; font-size: 10px; }
+  .alert-item .alert-time { color: #6b7280; font-size: 10px; white-space: nowrap; }
+
+  /* Quick actions */
+  .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  .quick-action { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; transition: all .15s; }
+  .quick-action:hover { border-color: #1E22A8; background: #0f1629; }
+  .quick-action .qa-icon { font-size: 22px; margin-bottom: 6px; }
+  .quick-action .qa-label { font-size: 11px; color: #9ca3af; }
+
+  .watermark { position: fixed; bottom: 10px; right: 16px; font-size: 10px; color: #1f2937; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">SAC</div>
+      <div class="brand-text">
+        <h2>Cicopal</h2>
+        <small>Produzindo sabor e felicidade</small>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active">
+        <span class="icon">&#128200;</span>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#128233;</span>
+        <span>Inbox</span>
+        <span class="badge">14</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#128100;</span>
+        <span>Meus Tickets</span>
+        <span class="badge warn">6</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#128101;</span>
+        <span>Fila de Espera</span>
+        <span class="badge">4</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#128172;</span>
+        <span>Chatbot WhatsApp</span>
+      </div>
+
+      <div class="nav-section">Gestao</div>
+      <div class="nav-item">
+        <span class="icon">&#128218;</span>
+        <span>Knowledge Base</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#128196;</span>
+        <span>Templates</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#128101;</span>
+        <span>Equipes</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#9889;</span>
+        <span>Automacoes</span>
+      </div>
+
+      <div class="nav-section">Analise</div>
+      <div class="nav-item">
+        <span class="icon">&#128202;</span>
+        <span>Analytics</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#129302;</span>
+        <span>Insights IA</span>
+      </div>
+
+      <div class="nav-section">Configuracao</div>
+      <div class="nav-item">
+        <span class="icon">&#9201;</span>
+        <span>Politicas SLA</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#128197;</span>
+        <span>Horario Comercial</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#128241;</span>
+        <span>WhatsApp API</span>
+      </div>
+      <div class="nav-item">
+        <span class="icon">&#9881;</span>
+        <span>Configuracoes</span>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="avatar">VC</div>
+      <div class="user-info">
+        <div class="name">Vanessa Costa</div>
+        <div class="role">Supervisora SAC</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="header">
+      <h1>Dashboard</h1>
+      <span class="company-tag">CICOPAL ALIMENTOS</span>
+      <div class="header-right">
+        <input type="text" class="search-box" placeholder="Buscar tickets, clientes, revendedores..." />
+        <div class="notif-bell">
+          <span>&#128276;</span>
+          <div class="dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Welcome -->
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2>Bom dia, Vanessa!</h2>
+          <p>Voce tem 6 tickets atribuidos e 4 na fila de espera. 2 alertas de SLA precisam de atencao.</p>
+        </div>
+        <div class="welcome-stats">
+          <div class="welcome-stat">
+            <div class="val">94%</div>
+            <div class="lab">SLA Compliance</div>
+          </div>
+          <div class="welcome-stat">
+            <div class="val">4.6</div>
+            <div class="lab">CSAT Hoje</div>
+          </div>
+          <div class="welcome-stat">
+            <div class="val">61%</div>
+            <div class="lab">Chatbot Resolucao</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <div class="quick-action">
+          <div class="qa-icon">&#10133;</div>
+          <div class="qa-label">Novo Ticket</div>
+        </div>
+        <div class="quick-action">
+          <div class="qa-icon">&#128172;</div>
+          <div class="qa-label">Atender Proximo</div>
+        </div>
+        <div class="quick-action">
+          <div class="qa-icon">&#129302;</div>
+          <div class="qa-label">Insights IA</div>
+        </div>
+        <div class="quick-action">
+          <div class="qa-icon">&#128202;</div>
+          <div class="qa-label">Relatorio do Dia</div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi-card blue">
+          <div class="label">Tickets Abertos</div>
+          <div class="value blue">52</div>
+          <div class="trend up">&#9650; +4 hoje</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="label">Tempo Med. Resposta</div>
+          <div class="value green">9min</div>
+          <div class="trend up">&#9650; -3min vs ontem</div>
+        </div>
+        <div class="kpi-card yellow">
+          <div class="label">Aguardando Cliente</div>
+          <div class="value yellow">11</div>
+          <div class="trend down">&#9660; +2 vs ontem</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="label">SLA Estourado</div>
+          <div class="value red">2</div>
+          <div class="trend down">&#9660; +1 vs ontem</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="label">Resolvidos Hoje</div>
+          <div class="value purple">18</div>
+          <div class="trend up">&#9650; +5 vs ontem</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h3>Volume por Hora (Hoje)</h3>
+            <span class="action">&#128197; Seg, 05 Abr 2026</span>
+          </div>
+          <div class="chart-bars">
+            <div class="chart-bar" style="height:15%; background:#1E22A8;"><span class="bar-val">3</span><span class="bar-label">8h</span></div>
+            <div class="chart-bar" style="height:35%; background:#1E22A8;"><span class="bar-val">7</span><span class="bar-label">9h</span></div>
+            <div class="chart-bar" style="height:65%; background:#1E22A8;"><span class="bar-val">13</span><span class="bar-label">10h</span></div>
+            <div class="chart-bar" style="height:85%; background:#E30513;"><span class="bar-val">17</span><span class="bar-label">11h</span></div>
+            <div class="chart-bar" style="height:40%; background:#1E22A8;"><span class="bar-val">8</span><span class="bar-label">12h</span></div>
+            <div class="chart-bar" style="height:20%; background:#14B8A6;"><span class="bar-val">4</span><span class="bar-label">13h</span></div>
+            <div class="chart-bar" style="height:55%; background:#1E22A8;"><span class="bar-val">11</span><span class="bar-label">14h</span></div>
+            <div class="chart-bar" style="height:75%; background:#FDC41F;"><span class="bar-val">15</span><span class="bar-label">15h</span></div>
+            <div class="chart-bar" style="height:50%; background:#1E22A8;"><span class="bar-val">10</span><span class="bar-label">16h</span></div>
+            <div class="chart-bar" style="height:30%; background:#14B8A6;"><span class="bar-val">6</span><span class="bar-label">17h</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Distribuicao por Categoria</h3>
+            <span class="action">Esta semana</span>
+          </div>
+          <div class="donut-container">
+            <div class="donut"></div>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="dot" style="background:#E30513;"></div>Reclamacao<span class="pct">28%</span></div>
+              <div class="legend-item"><div class="dot" style="background:#1E22A8;"></div>Informacao<span class="pct">20%</span></div>
+              <div class="legend-item"><div class="dot" style="background:#14B8A6;"></div>Revendedor<span class="pct">16%</span></div>
+              <div class="legend-item"><div class="dot" style="background:#FDC41F;"></div>Troca/Devolucao<span class="pct">12%</span></div>
+              <div class="legend-item"><div class="dot" style="background:#8b5cf6;"></div>Elogio<span class="pct">10%</span></div>
+              <div class="legend-item"><div class="dot" style="background:#f97316;"></div>Financeiro<span class="pct">7%</span></div>
+              <div class="legend-item"><div class="dot" style="background:#6b7280;"></div>Outros<span class="pct">7%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tickets + Alerts -->
+      <div class="grid-7-3">
+        <div class="card">
+          <div class="card-header">
+            <h3>Tickets Recentes</h3>
+            <span class="action">Ver todos &#8594;</span>
+          </div>
+          <div class="ticket-list">
+            <div class="ticket-item urgent">
+              <div class="ticket-priority critical"></div>
+              <div class="ticket-number">#SAC-0312</div>
+              <span class="ticket-cat rec">RECLAMACAO</span>
+              <div class="ticket-subject">Salgadinho Micos veio com gosto estranho, lote L2603</div>
+              <div class="ticket-channel">&#128172;</div>
+              <div class="ticket-sentiment">&#128545;</div>
+              <div class="ticket-time">2min</div>
+            </div>
+            <div class="ticket-item warning">
+              <div class="ticket-priority high"></div>
+              <div class="ticket-number">#SAC-0311</div>
+              <span class="ticket-cat rev">REVENDEDOR</span>
+              <div class="ticket-subject">Sou distribuidor em Manaus, quero ampliar carteira Crony e Micos</div>
+              <div class="ticket-channel">&#128172;</div>
+              <div class="ticket-sentiment">&#128578;</div>
+              <div class="ticket-time">8min</div>
+            </div>
+            <div class="ticket-item">
+              <div class="ticket-priority medium"></div>
+              <div class="ticket-number">#SAC-0310</div>
+              <span class="ticket-cat inf">INFORMACAO</span>
+              <div class="ticket-subject">A batata Refinata Classica tem gluten? Minha filha e celiaca</div>
+              <div class="ticket-channel">&#128172;</div>
+              <div class="ticket-sentiment">&#128528;</div>
+              <div class="ticket-time">15min</div>
+            </div>
+            <div class="ticket-item">
+              <div class="ticket-priority high"></div>
+              <div class="ticket-number">#SAC-0309</div>
+              <span class="ticket-cat tro">TROCA</span>
+              <div class="ticket-subject">Caixa de biscoito Nelita chegou avariada, 3 pacotes abertos</div>
+              <div class="ticket-channel">&#127760;</div>
+              <div class="ticket-sentiment">&#128533;</div>
+              <div class="ticket-time">28min</div>
+            </div>
+            <div class="ticket-item">
+              <div class="ticket-priority low"></div>
+              <div class="ticket-number">#SAC-0308</div>
+              <span class="ticket-cat elo">ELOGIO</span>
+              <div class="ticket-subject">Parabens pela nova Refinata sabor cebola caramelizada, mto boa!</div>
+              <div class="ticket-channel">&#128172;</div>
+              <div class="ticket-sentiment">&#128525;</div>
+              <div class="ticket-time">45min</div>
+            </div>
+            <div class="ticket-item">
+              <div class="ticket-priority medium"></div>
+              <div class="ticket-number">#SAC-0307</div>
+              <span class="ticket-cat fin">FINANCEIRO</span>
+              <div class="ticket-subject">Preciso da 2a via NF ref. pedido 8847 de marco</div>
+              <div class="ticket-channel">&#128172;</div>
+              <div class="ticket-sentiment">&#128528;</div>
+              <div class="ticket-time">1h</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>Alertas Ativos</h3>
+            <span class="action" style="color:#E30513;">4</span>
+          </div>
+          <div class="alert-list">
+            <div class="alert-item critical">
+              <span class="alert-icon">&#9888;&#65039;</span>
+              <div class="alert-text">
+                <strong>#SAC-0298 - SLA Estourado!</strong>
+                <small>Reclamacao sem resposta ha 3h10. Cliente ameaca Procon.</small>
+              </div>
+              <span class="alert-time">3h</span>
+            </div>
+            <div class="alert-item critical">
+              <span class="alert-icon">&#128544;</span>
+              <div class="alert-text">
+                <strong>#SAC-0312 - Sentimento Critico</strong>
+                <small>Score: -0.91 (muito irritado). Possivel caso de saude.</small>
+              </div>
+              <span class="alert-time">2min</span>
+            </div>
+            <div class="alert-item warning">
+              <span class="alert-icon">&#9201;</span>
+              <div class="alert-text">
+                <strong>#SAC-0305 - SLA 90%</strong>
+                <small>Restam 12min p/ responder. Revendedor em Belem.</small>
+              </div>
+              <span class="alert-time">48min</span>
+            </div>
+            <div class="alert-item info">
+              <span class="alert-icon">&#128101;</span>
+              <div class="alert-text">
+                <strong>4 tickets na fila</strong>
+                <small>Sem agente atribuido. Pico das 15h.</small>
+              </div>
+              <span class="alert-time">agora</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="watermark">WIREFRAME - SAC Cicopal | Dashboard Principal v2.0</div>
+</body>
+</html>

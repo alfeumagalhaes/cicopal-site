@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Cicopal - Trabalhe Conosco (Interesse em Vagas)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0c0e14; color: #e1e5ee; }
+  .layout { display: flex; height: 100vh; }
+
+  .sidebar { width: 56px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 2px; }
+  .sb-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: 17px; color: #6b7280; }
+  .sb-icon:hover { background: #1f2937; color: #e1e5ee; }
+  .sb-icon.active { background: #1E22A8; color: #fff; }
+  .sb-brand { width: 36px; height: 36px; background: linear-gradient(135deg, #1E22A8, #14B8A6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; color: white; margin-bottom: 10px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .header { height: 60px; background: #111827; border-bottom: 1px solid #1f2937; display: flex; align-items: center; padding: 0 28px; gap: 16px; }
+  .header h1 { font-size: 17px; display: flex; align-items: center; gap: 8px; }
+  .header h1 .emoji { font-size: 20px; }
+  .tabs { display: flex; gap: 3px; margin-left: 20px; }
+  .tab { padding: 6px 14px; border-radius: 6px; font-size: 12px; color: #9ca3af; cursor: pointer; }
+  .tab:hover { background: #1f2937; color: #e1e5ee; }
+  .tab.active { background: #8b5cf6; color: white; font-weight: 600; }
+  .hdr-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .hdr-right select { background: #1f2937; border: 1px solid #374151; border-radius: 6px; padding: 6px 10px; color: #9ca3af; font-size: 11px; }
+  .hdr-right button { background: #1f2937; border: 1px solid #374151; color: #9ca3af; padding: 6px 14px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+  /* Info banner */
+  .info-banner { background: linear-gradient(135deg, #1e1b4b, #111827); border: 1px solid #8b5cf644; border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
+  .info-banner .b-icon { font-size: 36px; }
+  .info-banner .b-text { flex: 1; }
+  .info-banner .b-text h3 { font-size: 14px; margin-bottom: 2px; }
+  .info-banner .b-text p { font-size: 11px; color: #9ca3af; }
+  .info-banner .b-link { background: #8b5cf6; color: white; border: none; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+
+  /* KPIs */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .kpi { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; position: relative; overflow: hidden; }
+  .kpi::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+  .kpi.purple::after { background: #8b5cf6; }
+  .kpi.blue::after { background: #1E22A8; }
+  .kpi.teal::after { background: #14B8A6; }
+  .kpi.yellow::after { background: #FDC41F; }
+  .kpi .label { font-size: 10px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi .value { font-size: 26px; font-weight: 700; }
+  .kpi .value.purple { color: #8b5cf6; }
+  .kpi .value.blue { color: #60a5fa; }
+  .kpi .value.teal { color: #14B8A6; }
+  .kpi .value.yellow { color: #FDC41F; }
+  .kpi .sub { font-size: 10px; color: #6b7280; margin-top: 2px; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+
+  .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 18px; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-header h3 { font-size: 13px; font-weight: 600; }
+  .card-header .action { font-size: 11px; color: #8b5cf6; cursor: pointer; }
+
+  /* Interest table */
+  .interest-table { width: 100%; border-collapse: collapse; }
+  .interest-table th { text-align: left; font-size: 9px; text-transform: uppercase; color: #6b7280; padding: 8px 10px; border-bottom: 1px solid #1f2937; letter-spacing: 0.5px; }
+  .interest-table td { padding: 10px; font-size: 12px; border-bottom: 1px solid #0c0e14; vertical-align: middle; }
+  .interest-table tr:hover { background: #0f1629; }
+  .i-name { font-weight: 500; }
+  .i-channel { font-size: 11px; }
+  .i-area { padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+  .i-area.producao { background: #14B8A633; color: #14B8A6; }
+  .i-area.qualidade { background: #1E22A833; color: #818cf8; }
+  .i-area.logistica { background: #FDC41F33; color: #FDC41F; }
+  .i-area.administrativo { background: #8b5cf633; color: #c4b5fd; }
+  .i-area.vendas { background: #22c55e33; color: #86efac; }
+  .i-area.manutencao { background: #f9731633; color: #fdba74; }
+  .i-area.geral { background: #37415166; color: #9ca3af; }
+  .i-city { font-size: 11px; color: #9ca3af; }
+  .i-question { font-size: 11px; color: #6b7280; max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .i-status { font-size: 10px; }
+  .i-status.auto { color: #14B8A6; }
+  .i-status.redir { color: #8b5cf6; }
+  .i-time { font-size: 10px; color: #6b7280; }
+
+  /* Bar chart */
+  .hbar-list { display: flex; flex-direction: column; gap: 8px; }
+  .hbar-item { display: flex; align-items: center; gap: 10px; }
+  .hbar-label { font-size: 11px; min-width: 100px; }
+  .hbar-track { flex: 1; height: 18px; background: #1f2937; border-radius: 3px; overflow: hidden; }
+  .hbar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; padding-left: 6px; font-size: 8px; font-weight: 600; }
+  .hbar-val { font-size: 11px; min-width: 30px; text-align: right; font-weight: 600; }
+
+  /* Factory cards */
+  .factory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .factory-card { background: #0c0e14; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; text-align: center; }
+  .factory-card .f-icon { font-size: 24px; margin-bottom: 4px; }
+  .factory-card .f-name { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+  .factory-card .f-loc { font-size: 9px; color: #6b7280; margin-bottom: 6px; }
+  .factory-card .f-count { font-size: 18px; font-weight: 700; color: #8b5cf6; }
+  .factory-card .f-label { font-size: 9px; color: #6b7280; }
+
+  /* FAQ list */
+  .faq-list { display: flex; flex-direction: column; gap: 6px; }
+  .faq-item { padding: 10px 12px; background: #0c0e14; border-radius: 6px; border-left: 2px solid #8b5cf633; }
+  .faq-item .faq-q { font-size: 12px; font-weight: 500; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .faq-item .faq-q .emoji { font-size: 14px; }
+  .faq-item .faq-count { font-size: 10px; color: #8b5cf6; }
+  .faq-item .faq-a { font-size: 10px; color: #6b7280; line-height: 1.4; }
+
+  .note-box { background: #1e1b4b44; border: 1px solid #8b5cf633; border-radius: 8px; padding: 12px; font-size: 11px; color: #c4b5fd; line-height: 1.5; margin-top: 12px; }
+  .note-box strong { color: #e1e5ee; }
+
+  .watermark { position: fixed; bottom: 6px; right: 16px; font-size: 10px; color: #1f2937; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-brand">SAC</div>
+    <div class="sb-icon" title="Dashboard">&#128200;</div>
+    <div class="sb-icon" title="Inbox">&#128233;</div>
+    <div class="sb-icon" title="Knowledge Base">&#128218;</div>
+    <div class="sb-icon" title="Analytics">&#128202;</div>
+    <div class="sb-icon" title="Revendedor">&#129309;</div>
+    <div class="sb-icon active" title="Trabalhe Conosco">&#128188;</div>
+    <div class="sb-icon" title="Config" style="margin-top:auto;margin-bottom:12px;">&#9881;</div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1><span class="emoji">&#128188;</span> Trabalhe Conosco</h1>
+      <div class="tabs">
+        <div class="tab active">Registro de Interesses</div>
+        <div class="tab">Perguntas Frequentes</div>
+        <div class="tab">Relatorio RH</div>
+      </div>
+      <div class="hdr-right">
+        <select>
+          <option>Ultimos 30 dias</option>
+          <option>Ultimo trimestre</option>
+          <option>Este ano</option>
+        </select>
+        <button>Exportar p/ RH</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Info banner -->
+      <div class="info-banner">
+        <div class="b-icon">&#128188;</div>
+        <div class="b-text">
+          <h3>Este modulo nao cria tickets nem gera SLA</h3>
+          <p>O chatbot responde duvidas sobre vagas e redireciona para o portal externo. Aqui voce acompanha o volume de interesse por area e unidade, e as perguntas mais frequentes, para alimentar o RH com inteligencia.</p>
+        </div>
+        <button class="b-link">&#128279; Portal de Vagas Cicopal</button>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi purple">
+          <div class="label">Interacoes (Mes)</div>
+          <div class="value purple">87</div>
+          <div class="sub">Pessoas perguntaram sobre vagas</div>
+        </div>
+        <div class="kpi blue">
+          <div class="label">Redirecionados ao Portal</div>
+          <div class="value blue">62</div>
+          <div class="sub">71% clicaram no link</div>
+        </div>
+        <div class="kpi teal">
+          <div class="label">Resolucao Automatica</div>
+          <div class="value teal">94%</div>
+          <div class="sub">Chatbot respondeu sem agente</div>
+        </div>
+        <div class="kpi yellow">
+          <div class="label">Area Mais Procurada</div>
+          <div class="value yellow" style="font-size:18px;">Producao</div>
+          <div class="sub">32% dos interesses</div>
+        </div>
+      </div>
+
+      <!-- Top row -->
+      <div class="grid-2">
+        <!-- By area -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Interesse por Area</h3>
+            <span class="action">Enviar p/ RH</span>
+          </div>
+          <div class="hbar-list">
+            <div class="hbar-item">
+              <div class="hbar-label">Producao</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:32%; background:#14B8A6;">32%</div></div>
+              <div class="hbar-val" style="color:#14B8A6;">28</div>
+            </div>
+            <div class="hbar-item">
+              <div class="hbar-label">Logistica</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:22%; background:#FDC41F;">22%</div></div>
+              <div class="hbar-val" style="color:#FDC41F;">19</div>
+            </div>
+            <div class="hbar-item">
+              <div class="hbar-label">Vendas</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:18%; background:#22c55e;">18%</div></div>
+              <div class="hbar-val" style="color:#22c55e;">16</div>
+            </div>
+            <div class="hbar-item">
+              <div class="hbar-label">Qualidade</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:14%; background:#1E22A8;">14%</div></div>
+              <div class="hbar-val" style="color:#60a5fa;">12</div>
+            </div>
+            <div class="hbar-item">
+              <div class="hbar-label">Administrativo</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:8%; background:#8b5cf6;">8%</div></div>
+              <div class="hbar-val" style="color:#8b5cf6;">7</div>
+            </div>
+            <div class="hbar-item">
+              <div class="hbar-label">Manutencao</div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:6%; background:#f97316;">6%</div></div>
+              <div class="hbar-val" style="color:#f97316;">5</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- By factory -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Interesse por Unidade / Fabrica</h3>
+          </div>
+          <div class="factory-grid">
+            <div class="factory-card">
+              <div class="f-icon">&#127981;</div>
+              <div class="f-name">Senador Canedo</div>
+              <div class="f-loc">GO (Matriz)</div>
+              <div class="f-count">34</div>
+              <div class="f-label">interesses</div>
+            </div>
+            <div class="factory-card">
+              <div class="f-icon">&#127981;</div>
+              <div class="f-name">Benevides</div>
+              <div class="f-loc">PA</div>
+              <div class="f-count">22</div>
+              <div class="f-label">interesses</div>
+            </div>
+            <div class="factory-card">
+              <div class="f-icon">&#127981;</div>
+              <div class="f-name">Bahia</div>
+              <div class="f-loc">Feira/Camacari</div>
+              <div class="f-count">18</div>
+              <div class="f-label">interesses</div>
+            </div>
+            <div class="factory-card">
+              <div class="f-icon">&#128310;</div>
+              <div class="f-name">Patrocinio</div>
+              <div class="f-loc">MG (Nova!)</div>
+              <div class="f-count">13</div>
+              <div class="f-label">interesses</div>
+            </div>
+          </div>
+          <div class="note-box">
+            <strong>&#128161; Insight IA:</strong> A fabrica de Patrocinio/MG (inaugurada em 2026) esta gerando forte interesse organico no Sudeste. 13 interacoes em 30 dias sem nenhuma divulgacao de vagas. RH deveria considerar abrir vagas nesta unidade em breve.
+          </div>
+        </div>
+      </div>
+
+      <!-- Perguntas frequentes -->
+      <div class="card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <h3>Perguntas Mais Frequentes (respondidas pelo chatbot)</h3>
+          <span class="action">Editar respostas na KB</span>
+        </div>
+        <div class="faq-list">
+          <div class="faq-item">
+            <div class="faq-q"><span class="emoji">&#10067;</span>"Tem vaga na area de producao?" <span class="faq-count">23x perguntada</span></div>
+            <div class="faq-a">Resposta: Redireciona para o portal de vagas com filtro por unidade e area.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q"><span class="emoji">&#10067;</span>"Qual o salario para operador de maquina?" <span class="faq-count">14x perguntada</span></div>
+            <div class="faq-a">Resposta: Informa que valores sao divulgados no processo seletivo e redireciona ao portal.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q"><span class="emoji">&#10067;</span>"Voces tem programa de jovem aprendiz?" <span class="faq-count">11x perguntada</span></div>
+            <div class="faq-a">Resposta: Sim, a Cicopal possui programa de Jovem Aprendiz. Vagas publicadas no portal.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q"><span class="emoji">&#10067;</span>"Aceita curriculo pelo WhatsApp?" <span class="faq-count">9x perguntada</span></div>
+            <div class="faq-a">Resposta: Curriculos devem ser enviados pelo portal oficial. WhatsApp e apenas para duvidas.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q"><span class="emoji">&#10067;</span>"Tem vaga na fabrica nova de Minas?" <span class="faq-count">8x perguntada</span></div>
+            <div class="faq-a">Resposta: A fabrica de Patrocinio/MG esta em fase de abertura. Vagas serao publicadas em breve no portal.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent log -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Log de Interacoes Recentes</h3>
+          <span class="action">Ver todas</span>
+        </div>
+        <table class="interest-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Canal</th>
+              <th>Area de Interesse</th>
+              <th>Cidade</th>
+              <th>O que Perguntou</th>
+              <th>Status</th>
+              <th>Quando</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="i-name">Carlos Eduardo</td>
+              <td class="i-channel">&#128172; WhatsApp</td>
+              <td><span class="i-area producao">Producao</span></td>
+              <td class="i-city">Goiania, GO</td>
+              <td class="i-question">Tem vaga pra area de qualidade em Goiania?</td>
+              <td class="i-status auto">&#10003; Auto-resolvido</td>
+              <td class="i-time">10min</td>
+            </tr>
+            <tr>
+              <td class="i-name">Maria Lucia</td>
+              <td class="i-channel">&#128172; WhatsApp</td>
+              <td><span class="i-area logistica">Logistica</span></td>
+              <td class="i-city">Belem, PA</td>
+              <td class="i-question">Quanto ganha motorista de entregas?</td>
+              <td class="i-status redir">&#128279; Redirecionado</td>
+              <td class="i-time">35min</td>
+            </tr>
+            <tr>
+              <td class="i-name">Rafael Santos</td>
+              <td class="i-channel">&#128172; WhatsApp</td>
+              <td><span class="i-area vendas">Vendas</span></td>
+              <td class="i-city">Salvador, BA</td>
+              <td class="i-question">Voces tem vaga pra representante comercial?</td>
+              <td class="i-status auto">&#10003; Auto-resolvido</td>
+              <td class="i-time">1h</td>
+            </tr>
+            <tr>
+              <td class="i-name">Ana Beatriz</td>
+              <td class="i-channel">&#127760; Site</td>
+              <td><span class="i-area qualidade">Qualidade</span></td>
+              <td class="i-city">Patrocinio, MG</td>
+              <td class="i-question">Fabrica nova de MG vai ter vaga de analista?</td>
+              <td class="i-status redir">&#128279; Redirecionado</td>
+              <td class="i-time">3h</td>
+            </tr>
+            <tr>
+              <td class="i-name">Diego Oliveira</td>
+              <td class="i-channel">&#128172; WhatsApp</td>
+              <td><span class="i-area manutencao">Manutencao</span></td>
+              <td class="i-city">Senador Canedo, GO</td>
+              <td class="i-question">Tem vaga pra tecnico de manutencao?</td>
+              <td class="i-status auto">&#10003; Auto-resolvido</td>
+              <td class="i-time">5h</td>
+            </tr>
+            <tr>
+              <td class="i-name">Fernanda Costa</td>
+              <td class="i-channel">&#128172; WhatsApp</td>
+              <td><span class="i-area geral">Nao especificou</span></td>
+              <td class="i-city">Maraba, PA</td>
+              <td class="i-question">Aceita curriculo pelo WhatsApp?</td>
+              <td class="i-status auto">&#10003; Auto-resolvido</td>
+              <td class="i-time">8h</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="watermark">WIREFRAME - SAC Cicopal | Trabalhe Conosco - Registro de Interesses v1.0</div>
+</body>
+</html>

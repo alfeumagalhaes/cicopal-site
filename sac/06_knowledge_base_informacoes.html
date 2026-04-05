@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Cicopal - Knowledge Base / Informacoes do Site</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0c0e14; color: #e1e5ee; }
+  .layout { display: flex; height: 100vh; }
+
+  .sidebar { width: 56px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 2px; }
+  .sb-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: 17px; color: #6b7280; }
+  .sb-icon:hover { background: #1f2937; color: #e1e5ee; }
+  .sb-icon.active { background: #1E22A8; color: #fff; }
+  .sb-brand { width: 36px; height: 36px; background: linear-gradient(135deg, #1E22A8, #14B8A6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; color: white; margin-bottom: 10px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .header { height: 60px; background: #111827; border-bottom: 1px solid #1f2937; display: flex; align-items: center; padding: 0 28px; gap: 16px; }
+  .header h1 { font-size: 17px; }
+  .tabs { display: flex; gap: 3px; margin-left: 20px; }
+  .tab { padding: 6px 14px; border-radius: 6px; font-size: 12px; color: #9ca3af; cursor: pointer; }
+  .tab:hover { background: #1f2937; color: #e1e5ee; }
+  .tab.active { background: #1E22A8; color: white; }
+  .hdr-right { margin-left: auto; display: flex; gap: 8px; }
+  .hdr-right button { background: #1f2937; border: 1px solid #374151; color: #9ca3af; padding: 6px 14px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .hdr-right button:hover { background: #374151; color: #e1e5ee; }
+  .hdr-right button.primary { background: #1E22A8; color: white; border-color: #1E22A8; }
+  .hdr-right button.sync { background: #14B8A6; color: #000; border-color: #14B8A6; font-weight: 600; }
+
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+  /* Sync banner */
+  .sync-banner { background: linear-gradient(135deg, #0f1629, #111827); border: 1px solid #1E22A844; border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
+  .sync-icon { font-size: 32px; }
+  .sync-info { flex: 1; }
+  .sync-info h3 { font-size: 14px; margin-bottom: 2px; }
+  .sync-info p { font-size: 11px; color: #9ca3af; }
+  .sync-stats { display: flex; gap: 20px; }
+  .sync-stat { text-align: center; }
+  .sync-stat .val { font-size: 20px; font-weight: 700; color: #14B8A6; }
+  .sync-stat .lab { font-size: 9px; color: #6b7280; }
+  .sync-btn { background: #14B8A6; color: #000; border: none; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .sync-btn:hover { background: #0d9488; }
+
+  /* Grid */
+  .grid-sidebar { display: grid; grid-template-columns: 240px 1fr; gap: 20px; }
+
+  /* Category sidebar */
+  .kb-cats { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px; align-self: start; position: sticky; top: 0; }
+  .kb-cats h4 { font-size: 11px; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; letter-spacing: 0.5px; }
+  .kb-cat-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px; font-size: 12px; color: #9ca3af; cursor: pointer; margin-bottom: 2px; }
+  .kb-cat-item:hover { background: #1f2937; color: #e1e5ee; }
+  .kb-cat-item.active { background: #0f1629; color: #60a5fa; border-left: 2px solid #1E22A8; }
+  .kb-cat-item .cnt { margin-left: auto; font-size: 10px; background: #1f2937; padding: 1px 6px; border-radius: 8px; }
+  .kb-cat-item .icon { font-size: 15px; width: 20px; text-align: center; }
+  .kb-cat-sep { height: 1px; background: #1f2937; margin: 8px 0; }
+
+  .kb-source-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+  .kb-source-tag.site { background: #1E22A833; color: #818cf8; }
+  .kb-source-tag.manual { background: #14B8A633; color: #14B8A6; }
+  .kb-source-tag.auto { background: #FDC41F33; color: #FDC41F; }
+
+  /* Articles list */
+  .kb-articles { display: flex; flex-direction: column; gap: 10px; }
+
+  .kb-search { display: flex; gap: 8px; margin-bottom: 16px; }
+  .kb-search input { flex: 1; background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 9px 14px; color: #e1e5ee; font-size: 12px; }
+  .kb-search input:focus { outline: none; border-color: #1E22A8; }
+  .kb-search select { background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 9px 10px; color: #9ca3af; font-size: 11px; }
+
+  .kb-article { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px 20px; cursor: pointer; transition: all .15s; }
+  .kb-article:hover { border-color: #1E22A844; background: #0f1629; }
+  .kb-article-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .kb-article-title { font-size: 14px; font-weight: 600; flex: 1; }
+  .kb-article-preview { font-size: 12px; color: #9ca3af; line-height: 1.5; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .kb-article-footer { display: flex; align-items: center; gap: 12px; font-size: 10px; color: #6b7280; }
+  .kb-article-footer .stat { display: flex; align-items: center; gap: 3px; }
+  .kb-article-footer .stat.good { color: #14B8A6; }
+  .kb-article-tags { display: flex; gap: 4px; margin-left: auto; }
+  .kb-article-tags .tag { font-size: 9px; padding: 2px 6px; background: #1f2937; border-radius: 3px; color: #9ca3af; }
+
+  /* Brand cards for products */
+  .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  .product-brand-card { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px; text-align: center; cursor: pointer; transition: all .15s; }
+  .product-brand-card:hover { border-color: #1E22A8; background: #0f1629; }
+  .product-brand-card .brand-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: white; margin: 0 auto 8px; }
+  .product-brand-card .brand-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .product-brand-card .brand-type { font-size: 10px; color: #6b7280; }
+  .product-brand-card .brand-articles { font-size: 10px; color: #14B8A6; margin-top: 4px; }
+
+  .section-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: #9ca3af; display: flex; align-items: center; gap: 8px; }
+  .section-title .line { flex: 1; height: 1px; background: #1f2937; }
+
+  .watermark { position: fixed; bottom: 6px; right: 16px; font-size: 10px; color: #1f2937; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-brand">SAC</div>
+    <div class="sb-icon" title="Dashboard">&#128200;</div>
+    <div class="sb-icon" title="Inbox">&#128233;</div>
+    <div class="sb-icon active" title="Knowledge Base">&#128218;</div>
+    <div class="sb-icon" title="Analytics">&#128202;</div>
+    <div class="sb-icon" title="Config" style="margin-top:auto;margin-bottom:12px;">&#9881;</div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1>Knowledge Base</h1>
+      <div class="tabs">
+        <div class="tab active">Artigos</div>
+        <div class="tab">Por Produto</div>
+        <div class="tab">Importados do Site</div>
+        <div class="tab">Metricas</div>
+      </div>
+      <div class="hdr-right">
+        <button class="sync">&#128260; Sincronizar Site</button>
+        <button class="primary">+ Novo Artigo</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Sync Banner -->
+      <div class="sync-banner">
+        <div class="sync-icon">&#127760;</div>
+        <div class="sync-info">
+          <h3>Sincronizacao com cicopal.com.br</h3>
+          <p>Ultima sync: 05/04/2026 08:00 | Proxima: 06/04/2026 08:00 (automatica diaria)</p>
+        </div>
+        <div class="sync-stats">
+          <div class="sync-stat"><div class="val">47</div><div class="lab">Paginas importadas</div></div>
+          <div class="sync-stat"><div class="val">9</div><div class="lab">Marcas mapeadas</div></div>
+          <div class="sync-stat"><div class="val">23</div><div class="lab">Produtos catalogados</div></div>
+        </div>
+        <button class="sync-btn">&#128260; Sync Agora</button>
+      </div>
+
+      <!-- Product Brands Grid -->
+      <div class="section-title">Marcas Cicopal <div class="line"></div></div>
+      <div class="product-grid">
+        <div class="product-brand-card">
+          <div class="brand-icon" style="background: #E30513;">Micos</div>
+          <div class="brand-name">Micos</div>
+          <div class="brand-type">Salgadinhos + Biscoitos</div>
+          <div class="brand-articles">6 artigos | 142 consultas</div>
+        </div>
+        <div class="product-brand-card">
+          <div class="brand-icon" style="background: #FDC41F; color: #000;">Crony</div>
+          <div class="brand-name">Crony</div>
+          <div class="brand-type">Batatas Chips</div>
+          <div class="brand-articles">4 artigos | 89 consultas</div>
+        </div>
+        <div class="product-brand-card">
+          <div class="brand-icon" style="background: #1E22A8;">Refinata</div>
+          <div class="brand-name">Refinata</div>
+          <div class="brand-type">Batatas Classica + Sabores</div>
+          <div class="brand-articles">5 artigos | 113 consultas</div>
+        </div>
+        <div class="product-brand-card">
+          <div class="brand-icon" style="background: #14B8A6; color: #000;">Nelita</div>
+          <div class="brand-name">Nelita</div>
+          <div class="brand-type">Biscoitos Rosquinhas</div>
+          <div class="brand-articles">3 artigos | 67 consultas</div>
+        </div>
+        <div class="product-brand-card">
+          <div class="brand-icon" style="background: #f97316;">Sullper</div>
+          <div class="brand-name">Sullper</div>
+          <div class="brand-type">Multi (batata palha, biscoito, refresco)</div>
+          <div class="brand-articles">4 artigos | 51 consultas</div>
+        </div>
+        <div class="product-brand-card">
+          <div class="brand-icon" style="background: #8b5cf6;">Slight</div>
+          <div class="brand-name">Slight</div>
+          <div class="brand-type">Batata Corte Fino</div>
+          <div class="brand-articles">2 artigos | 34 consultas</div>
+        </div>
+      </div>
+
+      <!-- Main content with sidebar -->
+      <div class="grid-sidebar">
+        <!-- Categories -->
+        <div class="kb-cats">
+          <h4>Categorias</h4>
+          <div class="kb-cat-item active">
+            <span class="icon">&#128218;</span>
+            <span>Todos os artigos</span>
+            <span class="cnt">68</span>
+          </div>
+          <div class="kb-cat-sep"></div>
+          <div class="kb-cat-item">
+            <span class="icon">&#127871;</span>
+            <span>Produtos</span>
+            <span class="cnt">23</span>
+          </div>
+          <div class="kb-cat-item">
+            <span class="icon">&#128270;</span>
+            <span>Info Nutricional</span>
+            <span class="cnt">12</span>
+          </div>
+          <div class="kb-cat-item">
+            <span class="icon">&#9888;</span>
+            <span>Alergenicos</span>
+            <span class="cnt">9</span>
+          </div>
+          <div class="kb-cat-item">
+            <span class="icon">&#128205;</span>
+            <span>Onde Comprar</span>
+            <span class="cnt">5</span>
+          </div>
+          <div class="kb-cat-item">
+            <span class="icon">&#127981;</span>
+            <span>Sobre a Empresa</span>
+            <span class="cnt">4</span>
+          </div>
+          <div class="kb-cat-item">
+            <span class="icon">&#129309;</span>
+            <span>Seja Revendedor</span>
+            <span class="cnt">3</span>
+          </div>
+          <div class="kb-cat-sep"></div>
+          <div class="kb-cat-item">
+            <span class="icon">&#128295;</span>
+            <span>Protocolos SAC</span>
+            <span class="cnt">6</span>
+          </div>
+          <div class="kb-cat-item">
+            <span class="icon">&#128259;</span>
+            <span>Troca/Devolucao</span>
+            <span class="cnt">3</span>
+          </div>
+          <div class="kb-cat-item">
+            <span class="icon">&#9989;</span>
+            <span>Qualidade</span>
+            <span class="cnt">3</span>
+          </div>
+        </div>
+
+        <!-- Articles -->
+        <div class="kb-articles">
+          <div class="kb-search">
+            <input type="text" placeholder="Buscar na Knowledge Base..." />
+            <select>
+              <option>Todas as fontes</option>
+              <option>Importado do site</option>
+              <option>Criado manualmente</option>
+              <option>Gerado por IA</option>
+            </select>
+          </div>
+
+          <div class="kb-article">
+            <div class="kb-article-top">
+              <span class="kb-article-title">Linha Refinata - Sabores e Informacoes</span>
+              <span class="kb-source-tag site">&#127760; Site</span>
+            </div>
+            <div class="kb-article-preview">A linha Refinata oferece batatas em duas variacoes: Refinata Classica com sabores tradicionais e Refinata Sabores com opcoes especiais como Cebola Caramelizada. Produzida na planta de Senador Canedo/GO...</div>
+            <div class="kb-article-footer">
+              <span class="stat">&#128172; Usada pela IA: 47x</span>
+              <span class="stat good">&#9989; Efetividade: 94%</span>
+              <span class="stat">&#128197; Atualizado: 05/04/2026</span>
+              <div class="kb-article-tags">
+                <span class="tag">refinata</span>
+                <span class="tag">batata</span>
+                <span class="tag">sabores</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="kb-article">
+            <div class="kb-article-top">
+              <span class="kb-article-title">Informacoes de Alergenicos - Todos os Produtos</span>
+              <span class="kb-source-tag manual">&#9997; Manual</span>
+            </div>
+            <div class="kb-article-preview">Tabela consolidada de alergenicos por produto. Inclui gluten, lactose, amendoim, soja e outros alergenicos. ATENCAO: Todos os produtos sao fabricados em ambiente que pode conter tracos de...</div>
+            <div class="kb-article-footer">
+              <span class="stat">&#128172; Usada pela IA: 89x</span>
+              <span class="stat good">&#9989; Efetividade: 97%</span>
+              <span class="stat">&#128197; Atualizado: 01/04/2026</span>
+              <div class="kb-article-tags">
+                <span class="tag">alergenicos</span>
+                <span class="tag">gluten</span>
+                <span class="tag">saude</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="kb-article">
+            <div class="kb-article-top">
+              <span class="kb-article-title">Como se tornar Revendedor Cicopal</span>
+              <span class="kb-source-tag site">&#127760; Site</span>
+            </div>
+            <div class="kb-article-preview">A Cicopal busca parceiros distribuidores em todo o Brasil. Para se tornar revendedor, e necessario ter CNPJ ativo, estrutura de distribuicao e atender os criterios minimos de volume...</div>
+            <div class="kb-article-footer">
+              <span class="stat">&#128172; Usada pela IA: 31x</span>
+              <span class="stat good">&#9989; Efetividade: 88%</span>
+              <span class="stat">&#128197; Atualizado: 03/04/2026</span>
+              <div class="kb-article-tags">
+                <span class="tag">revendedor</span>
+                <span class="tag">distribuidor</span>
+                <span class="tag">comercial</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="kb-article">
+            <div class="kb-article-top">
+              <span class="kb-article-title">Protocolo de Reclamacao por Qualidade do Produto</span>
+              <span class="kb-source-tag manual">&#9997; Manual</span>
+            </div>
+            <div class="kb-article-preview">Procedimento padrao para reclamacoes envolvendo qualidade: 1) Coletar lote, validade e foto. 2) Se envolver saude, prioridade CRITICA. 3) Acionar equipe Qualidade imediatamente. 4) Oferecer reposicao...</div>
+            <div class="kb-article-footer">
+              <span class="stat">&#128172; Usada pela IA: 22x</span>
+              <span class="stat good">&#9989; Efetividade: 91%</span>
+              <span class="stat">&#128197; Atualizado: 28/03/2026</span>
+              <div class="kb-article-tags">
+                <span class="tag">qualidade</span>
+                <span class="tag">protocolo</span>
+                <span class="tag">reclamacao</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="kb-article">
+            <div class="kb-article-top">
+              <span class="kb-article-title">Historia da Cicopal - Sobre a Empresa</span>
+              <span class="kb-source-tag site">&#127760; Site</span>
+            </div>
+            <div class="kb-article-preview">Fundada em 1993 por Vanderlan e Izaura Cardoso em Ceilandia/DF. O primeiro produto foi o salgadinho Micos. Hoje possui 1.800+ colaboradores, 5 fabricas em Goias, Para, Bahia e Minas Gerais...</div>
+            <div class="kb-article-footer">
+              <span class="stat">&#128172; Usada pela IA: 15x</span>
+              <span class="stat good">&#9989; Efetividade: 100%</span>
+              <span class="stat">&#128197; Atualizado: 05/04/2026</span>
+              <div class="kb-article-tags">
+                <span class="tag">empresa</span>
+                <span class="tag">historia</span>
+                <span class="tag">fabricas</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="kb-article">
+            <div class="kb-article-top">
+              <span class="kb-article-title">Micos - Todos os Sabores e Formatos</span>
+              <span class="kb-source-tag auto">&#129302; IA</span>
+            </div>
+            <div class="kb-article-preview">Catalogo completo da marca Micos: salgadinhos (sabores queijo, cebola, bacon, etc), rosquinhas de chocolate e coco, wafer. Gerado automaticamente a partir do site e complementado com dados internos...</div>
+            <div class="kb-article-footer">
+              <span class="stat">&#128172; Usada pela IA: 56x</span>
+              <span class="stat good">&#9989; Efetividade: 92%</span>
+              <span class="stat">&#128197; Atualizado: 04/04/2026</span>
+              <div class="kb-article-tags">
+                <span class="tag">micos</span>
+                <span class="tag">salgadinho</span>
+                <span class="tag">biscoito</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="watermark">WIREFRAME - SAC Cicopal | Knowledge Base / Informacoes v1.0</div>
+</body>
+</html>

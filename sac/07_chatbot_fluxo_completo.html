@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Cicopal - Chatbot Fluxo Completo (Todas as Opcoes)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0c0e14; color: #e1e5ee; padding: 30px; }
+
+  h1 { font-size: 20px; text-align: center; margin-bottom: 4px; }
+  h1 span { color: #1E22A8; }
+  .subtitle { text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 30px; }
+
+  .page-grid { display: grid; grid-template-columns: 370px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; }
+
+  /* Phone */
+  .phone { background: #111827; border: 2px solid #1f2937; border-radius: 36px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.4); position: sticky; top: 30px; align-self: start; }
+  .phone-notch { height: 24px; background: #0c0e14; border-radius: 0 0 16px 16px; margin: 0 80px; }
+  .wa-header { background: #075e54; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .wa-avatar { width: 34px; height: 34px; background: linear-gradient(135deg, #1E22A8, #14B8A6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: white; }
+  .wa-name { font-size: 13px; font-weight: 500; }
+  .wa-status { font-size: 10px; color: #a8d8d0; }
+  .wa-chat { background: #0b141a; padding: 10px; display: flex; flex-direction: column; gap: 5px; min-height: 600px; }
+  .wa-msg { max-width: 86%; padding: 7px 11px; border-radius: 8px; font-size: 12px; line-height: 1.4; }
+  .wa-msg.sent { background: #005c4b; align-self: flex-end; border-top-right-radius: 0; }
+  .wa-msg.bot { background: #1a2c3a; align-self: flex-start; border-top-left-radius: 0; border-left: 2px solid #1E22A8; }
+  .wa-msg .time { font-size: 9px; color: #8696a0; text-align: right; margin-top: 3px; }
+  .wa-msg .bot-label { font-size: 8px; color: #818cf8; font-weight: 700; margin-bottom: 3px; }
+  .wa-list { background: #1a2c3a; border-radius: 8px; align-self: flex-start; max-width: 90%; overflow: hidden; border-left: 2px solid #1E22A8; }
+  .wa-list-header { padding: 7px 11px; font-size: 11px; }
+  .wa-list-header .bot-label { font-size: 8px; color: #818cf8; font-weight: 700; margin-bottom: 3px; }
+  .wa-list-item { padding: 7px 11px; border-top: 1px solid #233a4a; font-size: 11px; display: flex; align-items: center; gap: 7px; }
+  .wa-list-item .num { width: 20px; height: 20px; background: #1E22A8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .wa-list-item .emoji { font-size: 14px; flex-shrink: 0; }
+  .wa-system { background: #182229; padding: 3px 10px; border-radius: 6px; font-size: 9px; color: #8696a0; align-self: center; text-align: center; }
+  /* Voice message mockup */
+  .voice-msg { display: flex; align-items: center; gap: 8px; background: #0d1a23; padding: 6px 10px; border-radius: 8px; margin-top: 4px; }
+  .voice-play { width: 28px; height: 28px; background: #14B8A6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+  .voice-wave { flex: 1; height: 20px; display: flex; align-items: center; gap: 1px; }
+  .voice-wave .bar { width: 3px; background: #14B8A6; border-radius: 2px; opacity: 0.6; }
+  .voice-dur { font-size: 10px; color: #8696a0; }
+  .wa-input { background: #1f2c34; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+  .wa-input-icons { display: flex; gap: 10px; font-size: 18px; color: #8696a0; }
+  .wa-input-field { flex: 1; background: #2a3942; border: none; border-radius: 20px; padding: 7px 12px; color: #e1e5ee; font-size: 12px; }
+  .wa-input-mic { width: 34px; height: 34px; background: #14B8A6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+  /* Right side - flow cards */
+  .flow-container { display: flex; flex-direction: column; gap: 16px; }
+  .section-header { font-size: 15px; font-weight: 600; color: #14B8A6; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .section-header .line { flex: 1; height: 1px; background: #1f2937; }
+  .section-desc { font-size: 11px; color: #6b7280; margin-bottom: 12px; }
+
+  /* Option cards */
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .option-card { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; transition: all .15s; }
+  .option-card:hover { border-color: #1E22A844; }
+  .option-card .opt-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .option-card .opt-num { width: 26px; height: 26px; background: #1E22A8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .option-card .opt-title { font-size: 13px; font-weight: 600; }
+  .option-card .opt-emoji { font-size: 18px; margin-left: auto; }
+  .option-card .opt-desc { font-size: 11px; color: #9ca3af; line-height: 1.5; margin-bottom: 8px; }
+  .option-card .opt-flow { display: flex; flex-direction: column; gap: 4px; }
+  .opt-step { display: flex; align-items: flex-start; gap: 6px; font-size: 10px; color: #6b7280; }
+  .opt-step .step-dot { width: 5px; height: 5px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .opt-step .step-dot.auto { background: #14B8A6; }
+  .opt-step .step-dot.human { background: #1E22A8; }
+  .opt-step .step-dot.alert { background: #FDC41F; }
+  .opt-step .step-dot.record { background: #6b7280; }
+
+  .opt-badges { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+  .opt-badge { font-size: 9px; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+  .opt-badge.auto { background: #14B8A633; color: #14B8A6; }
+  .opt-badge.human { background: #1E22A833; color: #818cf8; }
+  .opt-badge.sla { background: #FDC41F33; color: #FDC41F; }
+  .opt-badge.no-sla { background: #37415133; color: #9ca3af; }
+  .opt-badge.register { background: #37415133; color: #9ca3af; }
+  .opt-badge.priority { background: #E3051333; color: #fca5a5; }
+
+  /* Media types */
+  .media-section { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; margin-bottom: 20px; }
+  .media-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .media-type { text-align: center; padding: 12px; background: #0c0e14; border-radius: 8px; border: 1px solid #1f2937; }
+  .media-type .m-icon { font-size: 28px; margin-bottom: 6px; }
+  .media-type .m-label { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+  .media-type .m-desc { font-size: 9px; color: #6b7280; line-height: 1.4; }
+
+  /* Ticket behavior */
+  .behavior-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .behavior-table th { background: #0c0e14; padding: 8px 10px; text-align: left; font-size: 9px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.5px; border-bottom: 1px solid #1f2937; }
+  .behavior-table td { padding: 8px 10px; border-bottom: 1px solid #0c0e14; vertical-align: middle; }
+  .behavior-table tr:hover { background: #0f1629; }
+  .b-yes { color: #14B8A6; font-weight: 600; }
+  .b-no { color: #6b7280; }
+  .b-opt { color: #FDC41F; }
+  .b-cat { font-weight: 600; }
+
+  .watermark { text-align: center; font-size: 10px; color: #1f2937; margin-top: 30px; }
+</style>
+</head>
+<body>
+<h1>Chatbot <span>Cicopal</span> - Menu Completo + Regras de Atendimento</h1>
+<div class="subtitle">Todas as opcoes do menu WhatsApp, comportamento de cada tipo, regras de SLA, e tipos de midia aceitos</div>
+
+<div class="page-grid">
+  <!-- Phone -->
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="wa-header">
+      <div class="wa-avatar">C</div>
+      <div><div class="wa-name">Cicopal Alimentos</div><div class="wa-status">online</div></div>
+    </div>
+    <div class="wa-chat">
+      <div class="wa-msg bot">
+        <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+        <div>Ola! Bem-vindo a Cicopal &#127881; Produzindo sabor e felicidade desde 1993!</div>
+        <div class="time">10:15</div>
+      </div>
+
+      <div class="wa-list">
+        <div class="wa-list-header">
+          <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+          <div>Como posso ajudar?</div>
+        </div>
+        <div class="wa-list-item"><span class="num">1</span><span>&#128270; Informacoes sobre produtos</span></div>
+        <div class="wa-list-item"><span class="num">2</span><span>&#9888; Reclamacao</span></div>
+        <div class="wa-list-item"><span class="num">3</span><span>&#11088; Elogio</span></div>
+        <div class="wa-list-item"><span class="num">4</span><span>&#128161; Sugestao</span></div>
+        <div class="wa-list-item"><span class="num">5</span><span>&#129309; Quero ser revendedor</span></div>
+        <div class="wa-list-item"><span class="num">6</span><span>&#128259; Troca ou devolucao</span></div>
+        <div class="wa-list-item"><span class="num">7</span><span>&#128196; 2a via boleto / NF</span></div>
+        <div class="wa-list-item"><span class="num">8</span><span>&#128188; Trabalhe conosco</span></div>
+        <div class="wa-list-item"><span class="num">9</span><span>&#128100; Falar com atendente</span></div>
+      </div>
+
+      <div class="wa-msg sent"><div>8</div><div class="time">10:16 &#10004;&#10004;</div></div>
+
+      <div class="wa-msg bot">
+        <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+        <div>Que legal que quer fazer parte da Cicopal! &#128588;
+
+&#128205; Temos fabricas em Goias, Para, Bahia e Minas Gerais.
+
+As vagas disponiveis estao no nosso portal:
+&#128279; vagas.cicopal.com.br
+
+Quer saber mais sobre alguma area especifica? Pode perguntar!</div>
+        <div class="time">10:16</div>
+      </div>
+
+      <div class="wa-msg sent"><div>Tem vaga pra area de qualidade em Goiania?</div><div class="time">10:17 &#10004;&#10004;</div></div>
+
+      <div class="wa-msg bot">
+        <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+        <div>No momento as vagas sao publicadas no portal parceiro. Acesse:
+&#128279; vagas.cicopal.com.br
+
+La voce filtra por unidade (Senador Canedo/GO) e area (Qualidade).
+
+Posso ajudar com mais alguma coisa? &#128578;</div>
+        <div class="time">10:17</div>
+      </div>
+
+      <div class="wa-system">&#128274; Atendimento registrado | Sem ticket obrigatorio</div>
+
+      <div style="margin-top: 8px;">
+        <div class="wa-msg sent">
+          <div>Quero reclamar de um produto</div>
+          <div class="time">10:20 &#10004;&#10004;</div>
+        </div>
+
+        <div class="wa-msg bot">
+          <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+          <div>Lamento que tenha tido um problema. Vou registrar sua reclamacao.
+
+Por favor, me envie:
+1. &#128247; Foto do produto e do lote
+2. &#128221; Descreva o problema
+3. &#127755; Onde comprou
+
+Pode enviar por texto, foto ou audio!</div>
+          <div class="time">10:20</div>
+        </div>
+
+        <div class="wa-msg sent">
+          <div class="voice-msg">
+            <div class="voice-play">&#9654;</div>
+            <div class="voice-wave">
+              <div class="bar" style="height:6px;"></div><div class="bar" style="height:12px;"></div><div class="bar" style="height:8px;"></div><div class="bar" style="height:18px;"></div><div class="bar" style="height:14px;"></div><div class="bar" style="height:20px;"></div><div class="bar" style="height:10px;"></div><div class="bar" style="height:16px;"></div><div class="bar" style="height:22px;"></div><div class="bar" style="height:12px;"></div><div class="bar" style="height:8px;"></div><div class="bar" style="height:14px;"></div><div class="bar" style="height:6px;"></div><div class="bar" style="height:18px;"></div><div class="bar" style="height:10px;"></div><div class="bar" style="height:4px;"></div>
+            </div>
+            <div class="voice-dur">0:23</div>
+          </div>
+          <div class="time">10:21 &#10004;&#10004;</div>
+        </div>
+      </div>
+    </div>
+    <div class="wa-input">
+      <div class="wa-input-icons">&#128206; &#128247;</div>
+      <div class="wa-input-field">Mensagem</div>
+      <div class="wa-input-mic">&#127908;</div>
+    </div>
+  </div>
+
+  <!-- Right: Flow details -->
+  <div class="flow-container">
+
+    <!-- Media types -->
+    <div class="section-header">Tipos de Midia Aceitos <div class="line"></div></div>
+    <div class="media-section">
+      <div class="media-grid">
+        <div class="media-type">
+          <div class="m-icon">&#128172;</div>
+          <div class="m-label">Texto</div>
+          <div class="m-desc">Mensagens de texto livre. IA classifica e responde automaticamente quando possivel.</div>
+        </div>
+        <div class="media-type">
+          <div class="m-icon">&#127908;</div>
+          <div class="m-label">Audio / Voz</div>
+          <div class="m-desc">Mensagens de voz. Transcritas por IA (speech-to-text) para registro e classificacao.</div>
+        </div>
+        <div class="media-type">
+          <div class="m-icon">&#128247;</div>
+          <div class="m-label">Imagem / Foto</div>
+          <div class="m-desc">Fotos de produtos, lotes, notas fiscais. Salvas no Storage e anexadas ao ticket.</div>
+        </div>
+        <div class="media-type">
+          <div class="m-icon">&#128206;</div>
+          <div class="m-label">Documento</div>
+          <div class="m-desc">PDFs, planilhas. Ex: NF, comprovantes, pedidos. Armazenados com seguranca.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All 9 options -->
+    <div class="section-header">Menu do Chatbot - 9 Opcoes <div class="line"></div></div>
+    <div class="section-desc">Cada opcao tem comportamento diferente: algumas criam ticket com SLA, outras sao apenas registro sem obrigacao de retorno.</div>
+
+    <div class="options-grid">
+      <!-- 1. Informacoes -->
+      <div class="option-card">
+        <div class="opt-header">
+          <span class="opt-num">1</span>
+          <span class="opt-title">Informacoes sobre Produtos</span>
+          <span class="opt-emoji">&#128270;</span>
+        </div>
+        <div class="opt-desc">Cliente pergunta sobre produtos, ingredientes, alergenicos, onde comprar, tabela nutricional. IA busca na Knowledge Base (dados do site cicopal.com.br).</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot auto"></div>IA responde automaticamente via KB</div>
+          <div class="opt-step"><div class="step-dot auto"></div>Se resolveu: registra e encerra (sem ticket)</div>
+          <div class="opt-step"><div class="step-dot human"></div>Se nao resolveu: cria ticket e escala</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge auto">CHATBOT AUTO</span>
+          <span class="opt-badge no-sla">SEM SLA (auto)</span>
+          <span class="opt-badge register">REGISTRO OPCIONAL</span>
+        </div>
+      </div>
+
+      <!-- 2. Reclamacao -->
+      <div class="option-card" style="border-color: #E3051333;">
+        <div class="opt-header">
+          <span class="opt-num">2</span>
+          <span class="opt-title">Reclamacao</span>
+          <span class="opt-emoji">&#9888;</span>
+        </div>
+        <div class="opt-desc">Produto com defeito, gosto estranho, embalagem violada, corpo estranho, atraso entrega. Coleta lote, foto, descricao. Se envolver saude: prioridade CRITICA.</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot auto"></div>Chatbot coleta: lote + foto + descricao</div>
+          <div class="opt-step"><div class="step-dot alert"></div>IA classifica sentimento + gravidade</div>
+          <div class="opt-step"><div class="step-dot human"></div>SEMPRE cria ticket e roteia para agente</div>
+          <div class="opt-step"><div class="step-dot alert"></div>Se saude: aciona Qualidade imediato</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge human">AGENTE OBRIGATORIO</span>
+          <span class="opt-badge sla">SLA: 30min resp / 24h resolucao</span>
+          <span class="opt-badge priority">PODE SER CRITICA</span>
+        </div>
+      </div>
+
+      <!-- 3. Elogio -->
+      <div class="option-card">
+        <div class="opt-header">
+          <span class="opt-num">3</span>
+          <span class="opt-title">Elogio</span>
+          <span class="opt-emoji">&#11088;</span>
+        </div>
+        <div class="opt-desc">Cliente elogia produto, atendimento, marca. Registra para equipe de Marketing. Agradece automaticamente. Pode pedir permissao para compartilhar em redes.</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot auto"></div>Chatbot agradece automaticamente</div>
+          <div class="opt-step"><div class="step-dot record"></div>Registra internamente (produto + elogio)</div>
+          <div class="opt-step"><div class="step-dot auto"></div>Pergunta se pode usar como depoimento</div>
+          <div class="opt-step"><div class="step-dot record"></div>Encaminha p/ Marketing (sem SLA)</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge auto">CHATBOT AUTO</span>
+          <span class="opt-badge no-sla">SEM SLA</span>
+          <span class="opt-badge register">APENAS REGISTRO</span>
+        </div>
+      </div>
+
+      <!-- 4. Sugestao -->
+      <div class="option-card">
+        <div class="opt-header">
+          <span class="opt-num">4</span>
+          <span class="opt-title">Sugestao</span>
+          <span class="opt-emoji">&#128161;</span>
+        </div>
+        <div class="opt-desc">Sugestao de novo sabor, embalagem, ponto de venda, melhoria. Registra para equipe de P&D / Marketing. Agradece automaticamente.</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot auto"></div>Chatbot agradece e coleta detalhes</div>
+          <div class="opt-step"><div class="step-dot record"></div>Registra com tags (produto, tipo sugestao)</div>
+          <div class="opt-step"><div class="step-dot record"></div>Visivel no Analytics (nuvem de sugestoes)</div>
+          <div class="opt-step"><div class="step-dot record"></div>Sem obrigacao de retorno individual</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge auto">CHATBOT AUTO</span>
+          <span class="opt-badge no-sla">SEM SLA</span>
+          <span class="opt-badge register">APENAS REGISTRO</span>
+        </div>
+      </div>
+
+      <!-- 5. Revendedor -->
+      <div class="option-card" style="border-color: #14B8A644;">
+        <div class="opt-header">
+          <span class="opt-num">5</span>
+          <span class="opt-title">Quero ser Revendedor</span>
+          <span class="opt-emoji">&#129309;</span>
+        </div>
+        <div class="opt-desc">Potencial distribuidor/revendedor quer revender Cicopal. Chatbot coleta CNPJ, cidade, porte, marcas de interesse. Roteia para equipe Comercial como OPORTUNIDADE.</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot auto"></div>Chatbot coleta: nome, CNPJ, cidade, porte</div>
+          <div class="opt-step"><div class="step-dot auto"></div>Pergunta quais marcas tem interesse</div>
+          <div class="opt-step"><div class="step-dot human"></div>Cria ticket cat. REVENDEDOR + prioridade ALTA</div>
+          <div class="opt-step"><div class="step-dot alert"></div>Alerta especial p/ equipe Comercial</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge human">AGENTE COMERCIAL</span>
+          <span class="opt-badge sla">SLA: 30min resp / 4h retorno</span>
+          <span class="opt-badge priority">OPORTUNIDADE</span>
+        </div>
+      </div>
+
+      <!-- 6. Troca/Devolucao -->
+      <div class="option-card">
+        <div class="opt-header">
+          <span class="opt-num">6</span>
+          <span class="opt-title">Troca ou Devolucao</span>
+          <span class="opt-emoji">&#128259;</span>
+        </div>
+        <div class="opt-desc">Produto errado, avariado no transporte, quantidade incorreta. Coleta NF, lote, foto. Consumidor ou revendedor - fluxo diferente.</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot auto"></div>Chatbot identifica: consumidor vs revendedor</div>
+          <div class="opt-step"><div class="step-dot auto"></div>Coleta: NF + lote + fotos do problema</div>
+          <div class="opt-step"><div class="step-dot human"></div>Cria ticket e roteia (Pos-venda ou Logistica)</div>
+          <div class="opt-step"><div class="step-dot human"></div>Agente providencia troca/reposicao</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge human">AGENTE OBRIGATORIO</span>
+          <span class="opt-badge sla">SLA: 1h resp / 48h resolucao</span>
+        </div>
+      </div>
+
+      <!-- 7. 2a via -->
+      <div class="option-card">
+        <div class="opt-header">
+          <span class="opt-num">7</span>
+          <span class="opt-title">2a Via Boleto / NF</span>
+          <span class="opt-emoji">&#128196;</span>
+        </div>
+        <div class="opt-desc">Revendedor precisa de 2a via de boleto ou nota fiscal. Chatbot pode resolver automaticamente se integrado ao ERP, senao roteia para Financeiro.</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot auto"></div>Chatbot pede: CNPJ ou num. pedido</div>
+          <div class="opt-step"><div class="step-dot auto"></div>Se integrado ao ERP: envia PDF automatico</div>
+          <div class="opt-step"><div class="step-dot human"></div>Se nao: cria ticket p/ Financeiro</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge auto">CHATBOT AUTO (se ERP)</span>
+          <span class="opt-badge sla">SLA: 1h resp / 24h resolucao</span>
+        </div>
+      </div>
+
+      <!-- 8. Trabalhe Conosco -->
+      <div class="option-card">
+        <div class="opt-header">
+          <span class="opt-num">8</span>
+          <span class="opt-title">Trabalhe Conosco</span>
+          <span class="opt-emoji">&#128188;</span>
+        </div>
+        <div class="opt-desc">Interessado em vagas. Chatbot informa sobre areas, fabricas, e direciona para o portal de vagas. Perguntas e respostas apenas, sem ticket obrigatorio.</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot auto"></div>Chatbot responde duvidas sobre vagas</div>
+          <div class="opt-step"><div class="step-dot auto"></div>Direciona para portal externo (LG)</div>
+          <div class="opt-step"><div class="step-dot record"></div>Registra interesse (cidade, area, nome)</div>
+          <div class="opt-step"><div class="step-dot record"></div>Sem ticket, sem SLA, apenas log</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge auto">CHATBOT AUTO</span>
+          <span class="opt-badge no-sla">SEM SLA</span>
+          <span class="opt-badge register">APENAS REGISTRO</span>
+        </div>
+      </div>
+
+      <!-- 9. Falar com atendente -->
+      <div class="option-card" style="border-color: #1E22A844; grid-column: span 2;">
+        <div class="opt-header">
+          <span class="opt-num">9</span>
+          <span class="opt-title">Falar com Atendente (Fale Conosco)</span>
+          <span class="opt-emoji">&#128100;</span>
+        </div>
+        <div class="opt-desc">Cliente quer falar diretamente com humano, sem passar pelo chatbot. Cria ticket imediato e roteia para proximo agente disponivel. Fora do horario: informa horario e registra para callback.</div>
+        <div class="opt-flow">
+          <div class="opt-step"><div class="step-dot human"></div>Cria ticket imediato, categoria definida pelo agente</div>
+          <div class="opt-step"><div class="step-dot human"></div>Roteia para agente disponivel (smart routing)</div>
+          <div class="opt-step"><div class="step-dot alert"></div>Fora do horario (seg-qui 8h-18h, sex 8h-17h): registra + promete retorno</div>
+        </div>
+        <div class="opt-badges">
+          <span class="opt-badge human">AGENTE HUMANO</span>
+          <span class="opt-badge sla">SLA: depende da categoria</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Behavior matrix -->
+    <div class="section-header">Matriz de Comportamento por Tipo <div class="line"></div></div>
+    <div class="media-section">
+      <table class="behavior-table">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Cria Ticket?</th>
+            <th>SLA?</th>
+            <th>Agente?</th>
+            <th>Retorno Obrigatorio?</th>
+            <th>Aceita Midia?</th>
+            <th>Destino</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="b-cat">&#128270; Informacoes</td>
+            <td class="b-opt">Somente se escalar</td>
+            <td class="b-no">Nao (auto)</td>
+            <td class="b-opt">Se necessario</td>
+            <td class="b-no">Nao</td>
+            <td class="b-yes">Sim</td>
+            <td>Chatbot / KB</td>
+          </tr>
+          <tr>
+            <td class="b-cat">&#9888; Reclamacao</td>
+            <td class="b-yes">SEMPRE</td>
+            <td class="b-yes">SIM (rigoroso)</td>
+            <td class="b-yes">SEMPRE</td>
+            <td class="b-yes">SIM</td>
+            <td class="b-yes">Sim (foto lote)</td>
+            <td>SAC / Qualidade</td>
+          </tr>
+          <tr>
+            <td class="b-cat">&#11088; Elogio</td>
+            <td class="b-opt">Registro interno</td>
+            <td class="b-no">Nao</td>
+            <td class="b-no">Nao</td>
+            <td class="b-no">Nao</td>
+            <td class="b-yes">Sim</td>
+            <td>Marketing (log)</td>
+          </tr>
+          <tr>
+            <td class="b-cat">&#128161; Sugestao</td>
+            <td class="b-opt">Registro interno</td>
+            <td class="b-no">Nao</td>
+            <td class="b-no">Nao</td>
+            <td class="b-no">Nao</td>
+            <td class="b-yes">Sim</td>
+            <td>P&D / Mkt (log)</td>
+          </tr>
+          <tr>
+            <td class="b-cat">&#129309; Revendedor</td>
+            <td class="b-yes">SEMPRE</td>
+            <td class="b-yes">SIM (oportunidade)</td>
+            <td class="b-yes">SEMPRE</td>
+            <td class="b-yes">SIM</td>
+            <td class="b-yes">Sim</td>
+            <td>Comercial</td>
+          </tr>
+          <tr>
+            <td class="b-cat">&#128259; Troca</td>
+            <td class="b-yes">SEMPRE</td>
+            <td class="b-yes">SIM</td>
+            <td class="b-yes">SEMPRE</td>
+            <td class="b-yes">SIM</td>
+            <td class="b-yes">Sim (fotos)</td>
+            <td>Pos-venda / Log</td>
+          </tr>
+          <tr>
+            <td class="b-cat">&#128196; 2a Via</td>
+            <td class="b-opt">Se nao auto</td>
+            <td class="b-opt">Se ticket criado</td>
+            <td class="b-opt">Se necessario</td>
+            <td class="b-opt">Se ticket</td>
+            <td class="b-yes">Sim</td>
+            <td>Chatbot / Financ.</td>
+          </tr>
+          <tr>
+            <td class="b-cat">&#128188; Trabalhe Conosco</td>
+            <td class="b-no">NAO (log apenas)</td>
+            <td class="b-no">Nao</td>
+            <td class="b-no">Nao</td>
+            <td class="b-no">Nao</td>
+            <td class="b-opt">Curriculo</td>
+            <td>RH (portal ext.)</td>
+          </tr>
+          <tr>
+            <td class="b-cat">&#128100; Falar c/ Atendente</td>
+            <td class="b-yes">SEMPRE</td>
+            <td class="b-yes">SIM</td>
+            <td class="b-yes">SEMPRE</td>
+            <td class="b-yes">SIM</td>
+            <td class="b-yes">Sim</td>
+            <td>Smart Routing</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="watermark">WIREFRAME - SAC Cicopal | Chatbot Fluxo Completo + Regras v1.0</div>
+</body>
+</html>

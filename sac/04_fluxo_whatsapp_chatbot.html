@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Cicopal - Fluxo WhatsApp / Chatbot</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0c0e14; color: #e1e5ee; padding: 40px; }
+
+  h1 { font-size: 22px; text-align: center; margin-bottom: 4px; color: #e1e5ee; }
+  h1 span { color: #1E22A8; }
+  .subtitle { text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 40px; }
+
+  .container { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+
+  /* Phone */
+  .phone { width: 370px; background: #111827; border: 2px solid #1f2937; border-radius: 36px; overflow: hidden; flex-shrink: 0; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .phone-notch { height: 28px; background: #0c0e14; border-radius: 0 0 18px 18px; margin: 0 80px; }
+
+  .wa-header { background: #075e54; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .wa-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #1E22A8, #14B8A6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: white; }
+  .wa-name { font-size: 14px; font-weight: 500; }
+  .wa-status { font-size: 10px; color: #a8d8d0; }
+  .wa-back { font-size: 18px; cursor: pointer; }
+
+  .wa-chat { background: #0b141a; min-height: 520px; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+
+  .wa-msg { max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 13px; line-height: 1.4; }
+  .wa-msg.sent { background: #005c4b; align-self: flex-end; border-top-right-radius: 0; }
+  .wa-msg.bot { background: #1a2c3a; align-self: flex-start; border-top-left-radius: 0; border-left: 2px solid #1E22A8; }
+  .wa-msg .time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; }
+  .wa-msg .bot-label { font-size: 9px; color: #818cf8; font-weight: 700; margin-bottom: 4px; }
+
+  .wa-list { background: #1a2c3a; border-radius: 8px; align-self: flex-start; max-width: 88%; overflow: hidden; border-left: 2px solid #1E22A8; }
+  .wa-list-header { padding: 8px 12px; font-size: 12px; }
+  .wa-list-header .bot-label { font-size: 9px; color: #818cf8; font-weight: 700; margin-bottom: 4px; }
+  .wa-list-item { padding: 9px 12px; border-top: 1px solid #233a4a; font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .wa-list-item:hover { background: #15232e; }
+  .wa-list-item .num { width: 22px; height: 22px; background: #1E22A8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .wa-list-item .text { flex: 1; }
+  .wa-list-item .emoji { font-size: 16px; }
+
+  .wa-system { background: #182229; padding: 4px 12px; border-radius: 6px; font-size: 10px; color: #8696a0; align-self: center; text-align: center; }
+
+  .wa-input { background: #1f2c34; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+  .wa-input-field { flex: 1; background: #2a3942; border: none; border-radius: 20px; padding: 8px 14px; color: #e1e5ee; font-size: 13px; }
+  .wa-input-send { width: 36px; height: 36px; background: #14B8A6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; }
+
+  /* Flow side */
+  .flow-side { flex: 1; min-width: 420px; max-width: 620px; }
+  .flow-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #14B8A6; }
+
+  .flow-step { display: flex; gap: 14px; margin-bottom: 6px; position: relative; }
+  .flow-step::before { content: ''; position: absolute; left: 15px; top: 34px; bottom: -6px; width: 2px; background: #1f2937; }
+  .flow-step:last-child::before { display: none; }
+  .flow-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; z-index: 1; }
+  .flow-icon.webhook { background: #1E22A8; }
+  .flow-icon.ai { background: #2d1b69; }
+  .flow-icon.decision { background: #78350f; }
+  .flow-icon.action { background: #065f46; }
+  .flow-icon.alert { background: #7f1d1d; }
+  .flow-icon.check { background: #0f766e; }
+  .flow-icon.info { background: #1E22A8; }
+
+  .flow-content { flex: 1; background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+  .flow-content h4 { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .flow-content p { font-size: 11px; color: #9ca3af; line-height: 1.5; }
+  .flow-content .hl { color: #14B8A6; font-weight: 500; }
+  .flow-content .code { background: #1f2937; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 10px; color: #14B8A6; }
+
+  .flow-branch { display: flex; gap: 8px; margin-top: 8px; }
+  .flow-branch-item { flex: 1; background: #0c0e14; border: 1px solid #1f2937; border-radius: 6px; padding: 8px; font-size: 10px; text-align: center; }
+  .flow-branch-item.yes { border-color: #14B8A644; }
+  .flow-branch-item.no { border-color: #E3051344; }
+  .flow-branch-item .label { font-weight: 700; margin-bottom: 2px; }
+  .flow-branch-item .label.yes { color: #14B8A6; }
+  .flow-branch-item .label.no { color: #E30513; }
+
+  .scenarios { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  .scenario { background: #111827; border: 1px solid #1f2937; border-radius: 10px; padding: 14px; }
+  .scenario h4 { font-size: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .scenario ul { font-size: 11px; color: #9ca3af; padding-left: 16px; line-height: 1.8; }
+  .scenario.auto { border-color: #14B8A644; }
+  .scenario.human { border-color: #1E22A844; }
+  .scenario.escalate { border-color: #FDC41F44; }
+  .scenario.info { border-color: #60a5fa44; }
+
+  .watermark { text-align: center; font-size: 10px; color: #1f2937; margin-top: 40px; }
+</style>
+</head>
+<body>
+<h1>Fluxo WhatsApp - <span>Cicopal</span> SAC Inteligente</h1>
+<div class="subtitle">Chatbot com IA + Knowledge Base do site cicopal.com.br | Atendimento automatizado 24/7</div>
+
+<div class="container">
+  <!-- Phone -->
+  <div class="phone">
+    <div class="phone-notch"></div>
+    <div class="wa-header">
+      <span class="wa-back">&lt;</span>
+      <div class="wa-avatar">C</div>
+      <div>
+        <div class="wa-name">Cicopal Alimentos</div>
+        <div class="wa-status">online</div>
+      </div>
+    </div>
+    <div class="wa-chat">
+      <div class="wa-msg sent">
+        <div>Ola, queria saber mais sobre os produtos de voces</div>
+        <div class="time">10:15 &#10004;&#10004;</div>
+      </div>
+
+      <div class="wa-msg bot">
+        <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+        <div>Ola! Bem-vindo a Cicopal - produzindo sabor e felicidade desde 1993! &#127881;</div>
+        <div class="time">10:15</div>
+      </div>
+
+      <div class="wa-list">
+        <div class="wa-list-header">
+          <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+          <div>Como posso ajudar? Escolha uma opcao:</div>
+        </div>
+        <div class="wa-list-item">
+          <span class="num">1</span>
+          <span class="text">Informacoes sobre produtos</span>
+          <span class="emoji">&#128270;</span>
+        </div>
+        <div class="wa-list-item">
+          <span class="num">2</span>
+          <span class="text">Reclamacao</span>
+          <span class="emoji">&#9888;</span>
+        </div>
+        <div class="wa-list-item">
+          <span class="num">3</span>
+          <span class="text">Elogio ou sugestao</span>
+          <span class="emoji">&#11088;</span>
+        </div>
+        <div class="wa-list-item">
+          <span class="num">4</span>
+          <span class="text">Quero ser revendedor</span>
+          <span class="emoji">&#129309;</span>
+        </div>
+        <div class="wa-list-item">
+          <span class="num">5</span>
+          <span class="text">Troca ou devolucao</span>
+          <span class="emoji">&#128259;</span>
+        </div>
+        <div class="wa-list-item">
+          <span class="num">6</span>
+          <span class="text">2a via boleto / nota fiscal</span>
+          <span class="emoji">&#128196;</span>
+        </div>
+        <div class="wa-list-item">
+          <span class="num">7</span>
+          <span class="text">Falar com atendente</span>
+          <span class="emoji">&#128100;</span>
+        </div>
+      </div>
+
+      <div class="wa-msg sent">
+        <div>1</div>
+        <div class="time">10:16 &#10004;&#10004;</div>
+      </div>
+
+      <div class="wa-msg bot">
+        <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+        <div>Temos varias marcas e produtos! &#128523; Pode perguntar livremente, por exemplo:
+
+&#8226; "A Refinata tem gluten?"
+&#8226; "Quais sabores de Micos existem?"
+&#8226; "Onde encontro Crony em Salvador?"
+&#8226; "Qual a tabela nutricional do Slight?"</div>
+        <div class="time">10:16</div>
+      </div>
+
+      <div class="wa-msg sent">
+        <div>Quais sabores de batata Refinata voces tem?</div>
+        <div class="time">10:17 &#10004;&#10004;</div>
+      </div>
+
+      <div class="wa-msg bot">
+        <div class="bot-label">&#129302; CICOPAL ASSISTENTE (via Knowledge Base)</div>
+        <div>A linha Refinata tem duas variacoes:
+
+&#127871; <strong>Refinata Classica</strong> - sabores tradicionais
+&#127871; <strong>Refinata Sabores</strong> - inclui sabores especiais como Cebola Caramelizada (lancamento!)
+
+Alem disso temos a <strong>Slight</strong>, que e nossa batata corte fino, mais crocante e fininha!
+
+Quer saber mais sobre algum produto especifico? Informacao nutricional, alergenicos? &#128578;</div>
+        <div class="time">10:17</div>
+      </div>
+
+      <div class="wa-msg sent">
+        <div>Tem gluten? Minha filha e celiaca</div>
+        <div class="time">10:18 &#10004;&#10004;</div>
+      </div>
+
+      <div class="wa-msg bot">
+        <div class="bot-label">&#129302; CICOPAL ASSISTENTE</div>
+        <div>&#9888; Informacao importante sobre alergenicos:
+
+As batatas Refinata e Slight sao produzidas em ambiente que <strong>pode conter tracos de gluten</strong>. Recomendamos verificar o rotulo do produto antes do consumo.
+
+Para informacoes detalhadas sobre alergenicos de qualquer produto, posso transferir para nosso SAC especializado. Deseja?</div>
+        <div class="time">10:18</div>
+      </div>
+
+      <div class="wa-system">&#128274; Protocolo #SAC-0313 | Conversa protegida</div>
+    </div>
+    <div class="wa-input">
+      <div class="wa-input-field">Sim, por favor</div>
+      <div class="wa-input-send">&#10148;</div>
+    </div>
+  </div>
+
+  <!-- Flow -->
+  <div class="flow-side">
+    <div class="flow-title">Fluxo Tecnico do Chatbot Cicopal</div>
+
+    <div class="flow-step">
+      <div class="flow-icon webhook">&#128229;</div>
+      <div class="flow-content">
+        <h4>1. Webhook Recebe Mensagem</h4>
+        <p>WhatsApp Cloud API envia evento para <span class="code">sac-webhook-whatsapp</span>. Valida assinatura, extrai texto/midia/telefone.</p>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-icon check">&#128269;</div>
+      <div class="flow-content">
+        <h4>2. Verifica Sessao / Ticket</h4>
+        <p>Busca sessao ativa (24h) e ticket aberto para o telefone.</p>
+        <div class="flow-branch">
+          <div class="flow-branch-item yes"><div class="label yes">Ticket existe</div>Adiciona mensagem</div>
+          <div class="flow-branch-item no"><div class="label no">Novo contato</div>Inicia chatbot</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-icon ai">&#129302;</div>
+      <div class="flow-content">
+        <h4>3. IA Classifica + Detecta Intencao</h4>
+        <p><span class="hl">Categoria</span> + <span class="hl">Sentimento</span> + <span class="hl">Produto mencionado</span> + <span class="hl">Tipo de cliente</span> (consumidor vs revendedor)</p>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-icon info">&#128218;</div>
+      <div class="flow-content">
+        <h4>4. Busca na Knowledge Base</h4>
+        <p>Se a intencao e <span class="hl">INFORMACAO</span>, busca na KB que inclui dados do site cicopal.com.br: produtos, marcas, ingredientes, alergenicos, onde comprar, historia, fabricas.</p>
+        <div class="flow-branch">
+          <div class="flow-branch-item yes"><div class="label yes">Encontrou (>= 85%)</div>Responde automaticamente</div>
+          <div class="flow-branch-item no"><div class="label no">Nao encontrou</div>Escala para agente</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-icon decision">&#9881;</div>
+      <div class="flow-content">
+        <h4>5. Decisao: Resolver ou Escalar?</h4>
+        <p>Depende da categoria + complexidade + sentimento.</p>
+        <div class="flow-branch">
+          <div class="flow-branch-item yes"><div class="label yes">Auto-resolve</div>INFO, FAQ, onde comprar</div>
+          <div class="flow-branch-item no"><div class="label no">Agente humano</div>REC, TRO, qualidade, saude</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-icon action">&#10004;</div>
+      <div class="flow-content">
+        <h4>6. Cria Ticket + Roteia</h4>
+        <p>Classifica tipo de cliente (consumidor / revendedor). Roteia: SAC Consumidor, Comercial, Qualidade, Logistica, Financeiro.</p>
+      </div>
+    </div>
+
+    <!-- Scenarios -->
+    <div class="scenarios">
+      <div class="scenario info">
+        <h4>&#128270; Informacao (KB Automatica)</h4>
+        <ul>
+          <li>"Quais sabores de Micos?"</li>
+          <li>IA busca na Knowledge Base (site)</li>
+          <li>Responde com dados do produto</li>
+          <li>Pergunta se resolveu</li>
+          <li><strong>Tempo: ~30 segundos</strong></li>
+          <li><strong>Sem ticket criado</strong></li>
+        </ul>
+      </div>
+      <div class="scenario auto">
+        <h4>&#129309; Novo Revendedor</h4>
+        <ul>
+          <li>"Quero revender Cicopal em Manaus"</li>
+          <li>IA coleta: nome, CNPJ, cidade, telefone</li>
+          <li>Cria ticket cat. REVENDEDOR</li>
+          <li>Roteia para equipe Comercial</li>
+          <li>Prioridade ALTA (oportunidade)</li>
+          <li><strong>Alerta especial p/ vendas</strong></li>
+        </ul>
+      </div>
+      <div class="scenario escalate">
+        <h4>&#9888; Reclamacao Qualidade</h4>
+        <ul>
+          <li>"Produto com gosto estranho"</li>
+          <li>IA: REC + sentimento negativo</li>
+          <li>Detecta possivel caso de saude</li>
+          <li>Prioridade CRITICA automatica</li>
+          <li>Coleta lote + validade + foto</li>
+          <li><strong>Aciona Qualidade imediato</strong></li>
+        </ul>
+      </div>
+      <div class="scenario human">
+        <h4>&#11088; Elogio / Sugestao</h4>
+        <ul>
+          <li>"Amei a nova Refinata cebola!"</li>
+          <li>IA: ELOGIO + sentimento positivo</li>
+          <li>Agradece automaticamente</li>
+          <li>Registra p/ equipe de Marketing</li>
+          <li>Pergunta se pode compartilhar</li>
+          <li><strong>Alimenta NPS positivo</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="watermark">WIREFRAME - SAC Cicopal | Fluxo WhatsApp Chatbot v2.0</div>
+</body>
+</html>

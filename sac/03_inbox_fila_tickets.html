@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Cicopal - Inbox / Fila de Tickets</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0c0e14; color: #e1e5ee; }
+  .layout { display: flex; height: 100vh; }
+
+  .sidebar { width: 220px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; }
+  .sidebar-brand { padding: 14px 16px; border-bottom: 1px solid #1f2937; display: flex; align-items: center; gap: 10px; }
+  .brand-logo { width: 32px; height: 32px; background: linear-gradient(135deg, #1E22A8, #14B8A6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; color: white; }
+  .brand-name { font-size: 14px; font-weight: 700; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 9px 16px; font-size: 12px; color: #9ca3af; cursor: pointer; }
+  .nav-item:hover { background: #1f2937; color: #e1e5ee; }
+  .nav-item.active { background: #1E22A8; color: white; border-right: 2px solid #14B8A6; }
+  .nav-item .cnt { margin-left: auto; background: #1f2937; padding: 1px 7px; border-radius: 8px; font-size: 10px; }
+  .nav-item.active .cnt { background: rgba(255,255,255,.2); }
+  .nav-item .cnt.alert { background: #E30513; color: white; }
+  .nav-section { font-size: 9px; text-transform: uppercase; color: #4b5563; padding: 14px 16px 5px; letter-spacing: 1px; font-weight: 600; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .header { height: 56px; background: #111827; border-bottom: 1px solid #1f2937; display: flex; align-items: center; padding: 0 24px; gap: 16px; }
+  .header h1 { font-size: 16px; }
+  .hdr-stats { display: flex; gap: 18px; margin-left: 20px; }
+  .hdr-stat { font-size: 11px; color: #6b7280; }
+  .hdr-stat strong { color: #e1e5ee; }
+  .hdr-stat strong.red { color: #E30513; }
+  .hdr-right { margin-left: auto; display: flex; gap: 8px; }
+  .hdr-right button { background: #1f2937; border: 1px solid #374151; color: #9ca3af; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .hdr-right button:hover { background: #374151; color: #e1e5ee; }
+  .hdr-right button.primary { background: #1E22A8; color: white; border-color: #1E22A8; }
+
+  .filters-bar { padding: 10px 24px; background: #0a0c11; border-bottom: 1px solid #1f2937; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .f-chip { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: #1f2937; border: 1px solid #374151; border-radius: 6px; font-size: 11px; color: #9ca3af; cursor: pointer; }
+  .f-chip:hover { border-color: #1E22A8; color: #e1e5ee; }
+  .f-chip.active { background: #1E22A8; border-color: #1E22A8; color: white; }
+  .f-chip select { background: transparent; border: none; color: inherit; font-size: 11px; cursor: pointer; outline: none; }
+  .f-chip select option { background: #1f2937; color: #e1e5ee; }
+  .search-input { background: #1f2937; border: 1px solid #374151; border-radius: 6px; padding: 4px 10px; color: #e1e5ee; font-size: 11px; width: 220px; margin-left: auto; }
+
+  .bulk-bar { padding: 8px 24px; background: #0f1629; border-bottom: 1px solid #1E22A844; display: flex; align-items: center; gap: 12px; font-size: 12px; }
+  .bulk-bar .sel { color: #93c5fd; font-weight: 600; }
+  .bulk-bar button { background: #1E22A8; border: none; color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .bulk-bar button:hover { background: #171ba0; }
+
+  .table-wrap { flex: 1; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { position: sticky; top: 0; z-index: 1; }
+  thead th { background: #111827; padding: 10px 10px; text-align: left; font-size: 10px; text-transform: uppercase; color: #6b7280; letter-spacing: 0.5px; border-bottom: 1px solid #1f2937; white-space: nowrap; cursor: pointer; }
+  thead th:hover { color: #e1e5ee; }
+  tbody tr { border-bottom: 1px solid #0c0e14; cursor: pointer; transition: background .1s; }
+  tbody tr:hover { background: #131724; }
+  tbody tr.urgent { background: #110c0c; }
+  tbody td { padding: 11px 10px; font-size: 12px; vertical-align: middle; }
+
+  .c-check { width: 30px; }
+  .c-check input { accent-color: #1E22A8; }
+  .pri-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .pri-dot.critical { background: #E30513; animation: pulse 1.5s infinite; }
+  .pri-dot.high { background: #FDC41F; }
+  .pri-dot.medium { background: #1E22A8; }
+  .pri-dot.low { background: #6b7280; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+  .c-num { font-weight: 700; color: #60a5fa; white-space: nowrap; }
+  .cat-badge { padding: 2px 8px; border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+  .cat-badge.rec { background: #450a0a; color: #fca5a5; }
+  .cat-badge.inf { background: #1e1b4b; color: #c4b5fd; }
+  .cat-badge.rev { background: #052e16; color: #86efac; }
+  .cat-badge.tro { background: #431407; color: #fdba74; }
+  .cat-badge.elo { background: #052e16; color: #86efac; }
+  .cat-badge.fin { background: #3b0764; color: #d8b4fe; }
+  .cat-badge.sol { background: #0c1a3d; color: #93c5fd; }
+  .cat-badge.sug { background: #1e1b4b; color: #c4b5fd; }
+  .cat-badge.can { background: #450a0a; color: #fca5a5; }
+  .c-subj { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .c-cust { white-space: nowrap; }
+  .cust-type { font-size: 9px; color: #6b7280; }
+  .c-chan { white-space: nowrap; }
+  .status-pill { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 500; white-space: nowrap; }
+  .status-pill.new { background: #1E22A8; color: white; }
+  .status-pill.open { background: #450a0a; color: #fca5a5; }
+  .status-pill.pending { background: #431407; color: #fdba74; }
+  .status-pill.on-hold { background: #1f2937; color: #9ca3af; }
+  .status-pill.solved { background: #052e16; color: #86efac; }
+  .c-sent { text-align: center; font-size: 14px; }
+  .c-agent { white-space: nowrap; }
+  .agent-av { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; margin-right: 4px; vertical-align: middle; }
+  .no-agent { color: #E30513; font-style: italic; font-size: 11px; }
+  .sla-ok { color: #14B8A6; }
+  .sla-warn { color: #FDC41F; }
+  .sla-breach { color: #E30513; font-weight: 700; }
+  .c-time { white-space: nowrap; color: #6b7280; font-size: 11px; }
+
+  .pagination { padding: 10px 24px; background: #111827; border-top: 1px solid #1f2937; display: flex; align-items: center; justify-content: space-between; font-size: 11px; color: #6b7280; }
+  .pg-btns { display: flex; gap: 3px; }
+  .pg-btns button { background: #1f2937; border: 1px solid #374151; color: #9ca3af; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .pg-btns button.active { background: #1E22A8; color: white; border-color: #1E22A8; }
+
+  .watermark { position: fixed; bottom: 6px; right: 16px; font-size: 10px; color: #1f2937; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">SAC</div>
+      <span class="brand-name">Cicopal</span>
+    </div>
+    <div class="nav-item"><span>&#128200; Dashboard</span></div>
+    <div class="nav-item active"><span>&#128233; Inbox</span><span class="cnt">52</span></div>
+
+    <div class="nav-section">Visualizacoes</div>
+    <div class="nav-item"><span>Todos os tickets</span><span class="cnt">52</span></div>
+    <div class="nav-item"><span>Meus tickets</span><span class="cnt">8</span></div>
+    <div class="nav-item"><span>Nao atribuidos</span><span class="cnt alert">5</span></div>
+    <div class="nav-item"><span>SLA estourado</span><span class="cnt alert">2</span></div>
+    <div class="nav-item"><span>Pendentes cliente</span><span class="cnt">11</span></div>
+    <div class="nav-item"><span>Resolvidos hoje</span><span class="cnt">18</span></div>
+
+    <div class="nav-section">Por Equipe</div>
+    <div class="nav-item"><span>SAC Consumidor</span><span class="cnt">22</span></div>
+    <div class="nav-item"><span>Comercial / Revendedor</span><span class="cnt">12</span></div>
+    <div class="nav-item"><span>Qualidade</span><span class="cnt">8</span></div>
+    <div class="nav-item"><span>Financeiro</span><span class="cnt">6</span></div>
+    <div class="nav-item"><span>Logistica</span><span class="cnt">4</span></div>
+
+    <div class="nav-section">Por Produto</div>
+    <div class="nav-item"><span>Micos</span><span class="cnt">14</span></div>
+    <div class="nav-item"><span>Refinata / Crony</span><span class="cnt">11</span></div>
+    <div class="nav-item"><span>Nelita</span><span class="cnt">8</span></div>
+    <div class="nav-item"><span>Sullper</span><span class="cnt">5</span></div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1>Inbox</h1>
+      <div class="hdr-stats">
+        <div class="hdr-stat"><strong>52</strong> abertos</div>
+        <div class="hdr-stat"><strong>5</strong> sem agente</div>
+        <div class="hdr-stat"><strong class="red">2</strong> SLA estourado</div>
+        <div class="hdr-stat"><strong style="color:#14B8A6;">18</strong> resolvidos hoje</div>
+      </div>
+      <div class="hdr-right">
+        <button>Exportar</button>
+        <button class="primary">+ Novo Ticket</button>
+      </div>
+    </div>
+
+    <div class="filters-bar">
+      <div class="f-chip active">Todos</div>
+      <div class="f-chip">Status: <select><option>Todos</option><option>Novo</option><option>Aberto</option><option>Pendente</option><option>Em espera</option><option>Resolvido</option></select></div>
+      <div class="f-chip">Prioridade: <select><option>Todas</option><option>Critica</option><option>Alta</option><option>Media</option><option>Baixa</option></select></div>
+      <div class="f-chip">Categoria: <select><option>Todas</option><option>Reclamacao</option><option>Informacao</option><option>Revendedor</option><option>Troca</option><option>Elogio</option><option>Financeiro</option></select></div>
+      <div class="f-chip">Produto: <select><option>Todos</option><option>Micos</option><option>Refinata</option><option>Crony</option><option>Nelita</option><option>Sullper</option><option>Slight</option></select></div>
+      <div class="f-chip">Canal: <select><option>Todos</option><option>WhatsApp</option><option>Web</option><option>0800</option></select></div>
+      <input type="text" class="search-input" placeholder="Buscar por lote, produto, cliente, #ticket..." />
+    </div>
+
+    <div class="bulk-bar">
+      <span class="sel">2 selecionados</span>
+      <button>Atribuir agente</button>
+      <button>Mudar status</button>
+      <button>Mudar prioridade</button>
+      <button>Adicionar tag</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="c-check"><input type="checkbox"/></th>
+            <th></th>
+            <th>Ticket</th>
+            <th>Categoria</th>
+            <th>Assunto</th>
+            <th>Cliente</th>
+            <th>Canal</th>
+            <th>Status</th>
+            <th>Sent.</th>
+            <th>Agente</th>
+            <th>SLA</th>
+            <th>Criado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="urgent">
+            <td class="c-check"><input type="checkbox" checked/></td>
+            <td><span class="pri-dot critical"></span></td>
+            <td class="c-num">#SAC-0312</td>
+            <td><span class="cat-badge rec">REC</span></td>
+            <td class="c-subj">Micos Queijo gosto estranho, filho com mal estar - lote L2603-B</td>
+            <td class="c-cust">Claudia Ferreira<br/><span class="cust-type">Consumidor</span></td>
+            <td class="c-chan">&#128172; WhatsApp</td>
+            <td><span class="status-pill open">Aberto</span></td>
+            <td class="c-sent">&#128545;</td>
+            <td class="c-agent"><span class="agent-av" style="background:#14B8A6;color:#000;">VC</span>Vanessa</td>
+            <td class="sla-ok">22h55</td>
+            <td class="c-time">2min</td>
+          </tr>
+          <tr>
+            <td class="c-check"><input type="checkbox" checked/></td>
+            <td><span class="pri-dot high"></span></td>
+            <td class="c-num">#SAC-0311</td>
+            <td><span class="cat-badge rev">REVEND</span></td>
+            <td class="c-subj">Ampliar carteira Crony e Micos na regiao Norte (AM)</td>
+            <td class="c-cust">Distrib. Norte AM<br/><span class="cust-type">Revendedor</span></td>
+            <td class="c-chan">&#128172; WhatsApp</td>
+            <td><span class="status-pill new">Novo</span></td>
+            <td class="c-sent">&#128578;</td>
+            <td class="c-agent"><span class="no-agent">Sem agente</span></td>
+            <td class="sla-warn">22min</td>
+            <td class="c-time">8min</td>
+          </tr>
+          <tr>
+            <td class="c-check"><input type="checkbox"/></td>
+            <td><span class="pri-dot medium"></span></td>
+            <td class="c-num">#SAC-0310</td>
+            <td><span class="cat-badge inf">INFO</span></td>
+            <td class="c-subj">Refinata Classica tem gluten? Filha celiaca</td>
+            <td class="c-cust">Renata Lima<br/><span class="cust-type">Consumidor</span></td>
+            <td class="c-chan">&#128172; WhatsApp</td>
+            <td><span class="status-pill pending">Pendente</span></td>
+            <td class="c-sent">&#128528;</td>
+            <td class="c-agent"><span class="agent-av" style="background:#60a5fa;">LM</span>Lucas</td>
+            <td class="sla-ok">1h45</td>
+            <td class="c-time">15min</td>
+          </tr>
+          <tr>
+            <td class="c-check"><input type="checkbox"/></td>
+            <td><span class="pri-dot high"></span></td>
+            <td class="c-num">#SAC-0309</td>
+            <td><span class="cat-badge tro">TROCA</span></td>
+            <td class="c-subj">Caixa Nelita Rosquinha avariada - 3 pacotes abertos</td>
+            <td class="c-cust">Sup. Bom Preco<br/><span class="cust-type">Revendedor</span></td>
+            <td class="c-chan">&#127760; Web</td>
+            <td><span class="status-pill open">Aberto</span></td>
+            <td class="c-sent">&#128533;</td>
+            <td class="c-agent"><span class="agent-av" style="background:#f59e0b;color:#000;">PR</span>Patricia</td>
+            <td class="sla-ok">23h</td>
+            <td class="c-time">28min</td>
+          </tr>
+          <tr>
+            <td class="c-check"><input type="checkbox"/></td>
+            <td><span class="pri-dot low"></span></td>
+            <td class="c-num">#SAC-0308</td>
+            <td><span class="cat-badge elo">ELOGIO</span></td>
+            <td class="c-subj">Parabens pela Refinata sabor cebola caramelizada!</td>
+            <td class="c-cust">Paulo Henrique<br/><span class="cust-type">Consumidor</span></td>
+            <td class="c-chan">&#128172; WhatsApp</td>
+            <td><span class="status-pill open">Aberto</span></td>
+            <td class="c-sent">&#128525;</td>
+            <td class="c-agent"><span class="agent-av" style="background:#14B8A6;color:#000;">VC</span>Vanessa</td>
+            <td class="sla-ok">46h</td>
+            <td class="c-time">45min</td>
+          </tr>
+          <tr>
+            <td class="c-check"><input type="checkbox"/></td>
+            <td><span class="pri-dot medium"></span></td>
+            <td class="c-num">#SAC-0307</td>
+            <td><span class="cat-badge fin">FIN</span></td>
+            <td class="c-subj">2a via NF ref. pedido 8847 de marco</td>
+            <td class="c-cust">Atacadao Goiania<br/><span class="cust-type">Revendedor</span></td>
+            <td class="c-chan">&#128172; WhatsApp</td>
+            <td><span class="status-pill on-hold">Em Espera</span></td>
+            <td class="c-sent">&#128528;</td>
+            <td class="c-agent"><span class="agent-av" style="background:#60a5fa;">LM</span>Lucas</td>
+            <td class="sla-ok">20h</td>
+            <td class="c-time">1h</td>
+          </tr>
+          <tr>
+            <td class="c-check"><input type="checkbox"/></td>
+            <td><span class="pri-dot medium"></span></td>
+            <td class="c-num">#SAC-0306</td>
+            <td><span class="cat-badge sol">SOL</span></td>
+            <td class="c-subj">Onde encontro Micos na regiao de Feira de Santana?</td>
+            <td class="c-cust">Amanda Souza<br/><span class="cust-type">Consumidor</span></td>
+            <td class="c-chan">&#128241; 0800</td>
+            <td><span class="status-pill solved">Resolvido</span></td>
+            <td class="c-sent">&#128578;</td>
+            <td class="c-agent"><span class="agent-av" style="background:#f59e0b;color:#000;">PR</span>Patricia</td>
+            <td class="sla-ok">Dentro</td>
+            <td class="c-time">2h</td>
+          </tr>
+          <tr class="urgent">
+            <td class="c-check"><input type="checkbox"/></td>
+            <td><span class="pri-dot critical"></span></td>
+            <td class="c-num">#SAC-0298</td>
+            <td><span class="cat-badge rec">REC</span></td>
+            <td class="c-subj">Corpo estranho em pacote de Crony Original - ameaca Procon</td>
+            <td class="c-cust">Marcos Pereira<br/><span class="cust-type">Consumidor</span></td>
+            <td class="c-chan">&#128172; WhatsApp</td>
+            <td><span class="status-pill open">Aberto</span></td>
+            <td class="c-sent">&#128545;</td>
+            <td class="c-agent"><span class="no-agent">Sem agente</span></td>
+            <td class="sla-breach">ESTOURADO -3h10</td>
+            <td class="c-time">3h10</td>
+          </tr>
+          <tr>
+            <td class="c-check"><input type="checkbox"/></td>
+            <td><span class="pri-dot low"></span></td>
+            <td class="c-num">#SAC-0297</td>
+            <td><span class="cat-badge sug">SUG</span></td>
+            <td class="c-subj">Sugestao: Micos sabor churrasco seria incrivel!</td>
+            <td class="c-cust">Diego Santos<br/><span class="cust-type">Consumidor</span></td>
+            <td class="c-chan">&#127760; Web</td>
+            <td><span class="status-pill pending">Pendente</span></td>
+            <td class="c-sent">&#128578;</td>
+            <td class="c-agent"><span class="agent-av" style="background:#60a5fa;">LM</span>Lucas</td>
+            <td class="sla-ok">5d</td>
+            <td class="c-time">5h</td>
+          </tr>
+          <tr>
+            <td class="c-check"><input type="checkbox"/></td>
+            <td><span class="pri-dot high"></span></td>
+            <td class="c-num">#SAC-0296</td>
+            <td><span class="cat-badge rev">REVEND</span></td>
+            <td class="c-subj">Pedido 9102 atrasado 4 dias, clientes cobrando - Belem/PA</td>
+            <td class="c-cust">Distrib. Para<br/><span class="cust-type">Revendedor</span></td>
+            <td class="c-chan">&#128172; WhatsApp</td>
+            <td><span class="status-pill open">Aberto</span></td>
+            <td class="c-sent">&#128533;</td>
+            <td class="c-agent"><span class="agent-av" style="background:#f59e0b;color:#000;">PR</span>Patricia</td>
+            <td class="sla-warn">2h</td>
+            <td class="c-time">6h</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <span>Mostrando 1-10 de 52 tickets</span>
+      <div class="pg-btns">
+        <button>Anterior</button>
+        <button class="active">1</button>
+        <button>2</button>
+        <button>3</button>
+        <button>4</button>
+        <button>5</button>
+        <button>6</button>
+        <button>Proximo</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="watermark">WIREFRAME - SAC Cicopal | Inbox / Fila de Tickets v2.0</div>
+</body>
+</html>

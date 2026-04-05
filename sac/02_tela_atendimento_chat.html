@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAC Cicopal - Tela de Atendimento / Chat</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0c0e14; color: #e1e5ee; }
+  .layout { display: flex; height: 100vh; }
+
+  /* Sidebar mini */
+  .sidebar-mini { width: 56px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 2px; }
+  .sb-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: 17px; color: #6b7280; position: relative; }
+  .sb-icon:hover { background: #1f2937; color: #e1e5ee; }
+  .sb-icon.active { background: #1E22A8; color: #fff; }
+  .sb-icon .badge { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: #E30513; border-radius: 50%; font-size: 9px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; }
+  .sb-brand { width: 36px; height: 36px; background: linear-gradient(135deg, #1E22A8, #14B8A6); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 10px; color: white; margin-bottom: 10px; }
+
+  /* Ticket List Sidebar */
+  .ticket-sidebar { width: 290px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; }
+  .ts-header { padding: 14px 16px; border-bottom: 1px solid #1f2937; }
+  .ts-header h3 { font-size: 14px; margin-bottom: 8px; color: #e1e5ee; }
+  .ts-header input { width: 100%; background: #1f2937; border: 1px solid #374151; border-radius: 6px; padding: 7px 10px; color: #9ca3af; font-size: 12px; }
+  .ts-filters { padding: 8px 16px; display: flex; gap: 4px; border-bottom: 1px solid #1f2937; }
+  .ts-filter { padding: 3px 8px; border-radius: 4px; font-size: 10px; color: #6b7280; cursor: pointer; border: 1px solid transparent; }
+  .ts-filter:hover { color: #e1e5ee; }
+  .ts-filter.active { background: #1E22A8; color: white; }
+  .ts-list { flex: 1; overflow-y: auto; }
+
+  .t-mini { padding: 12px 16px; border-bottom: 1px solid #0c0e14; cursor: pointer; transition: background .1s; }
+  .t-mini:hover { background: #1f2937; }
+  .t-mini.active { background: #0f1629; border-left: 3px solid #1E22A8; }
+  .t-mini-top { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+  .t-mini-num { font-size: 11px; font-weight: 700; color: #60a5fa; }
+  .t-mini-pri { width: 6px; height: 6px; border-radius: 50%; }
+  .t-mini-pri.critical { background: #E30513; }
+  .t-mini-pri.high { background: #FDC41F; }
+  .t-mini-pri.medium { background: #1E22A8; }
+  .t-mini-time { font-size: 9px; color: #6b7280; margin-left: auto; }
+  .t-mini-name { font-size: 12px; font-weight: 500; margin-bottom: 2px; }
+  .t-mini-preview { font-size: 11px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-mini-tags { display: flex; gap: 4px; margin-top: 4px; }
+  .t-tag { font-size: 9px; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+  .t-tag.rec { background: #450a0a; color: #fca5a5; }
+  .t-tag.rev { background: #052e16; color: #86efac; }
+  .t-tag.tro { background: #431407; color: #fdba74; }
+  .t-tag.inf { background: #1e1b4b; color: #c4b5fd; }
+  .t-tag.fin { background: #3b0764; color: #d8b4fe; }
+  .unread-dot { width: 8px; height: 8px; background: #1E22A8; border-radius: 50%; margin-left: 4px; flex-shrink: 0; }
+
+  /* Chat Area */
+  .chat-area { flex: 1; display: flex; flex-direction: column; }
+
+  .chat-header { height: 64px; background: #111827; border-bottom: 1px solid #1f2937; display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+  .ch-avatar { width: 36px; height: 36px; background: #E30513; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+  .ch-info { flex: 1; }
+  .ch-info h3 { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .ch-info .sub { font-size: 11px; color: #6b7280; display: flex; align-items: center; gap: 6px; }
+  .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .status-badge.open { background: #1E22A8; color: white; }
+  .ch-actions { display: flex; gap: 6px; }
+  .ch-actions button { background: #1f2937; border: 1px solid #374151; color: #9ca3af; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; transition: all .1s; }
+  .ch-actions button:hover { background: #374151; color: #e1e5ee; }
+  .ch-actions button.resolve { background: #14B8A6; color: #000; border-color: #14B8A6; font-weight: 600; }
+  .ch-actions button.resolve:hover { background: #0d9488; }
+
+  /* Messages */
+  .chat-msgs { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 68%; display: flex; flex-direction: column; }
+  .msg.customer { align-self: flex-start; }
+  .msg.agent { align-self: flex-end; }
+  .msg.system { align-self: center; max-width: 90%; }
+  .msg.internal { align-self: flex-end; }
+
+  .msg-bubble { padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+  .msg.customer .msg-bubble { background: #1f2937; border-bottom-left-radius: 4px; }
+  .msg.agent .msg-bubble { background: #1E22A8; border-bottom-right-radius: 4px; }
+  .msg.system .msg-bubble { background: transparent; color: #6b7280; font-size: 11px; text-align: center; border: 1px dashed #374151; padding: 6px 12px; }
+  .msg.internal .msg-bubble { background: #2d1f00; border: 1px solid #78350f; border-bottom-right-radius: 4px; }
+  .msg.internal .msg-bubble::before { content: 'NOTA INTERNA'; display: block; font-size: 9px; color: #FDC41F; margin-bottom: 4px; font-weight: 700; letter-spacing: 1px; }
+
+  .msg-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; font-size: 10px; color: #6b7280; }
+  .msg.agent .msg-meta { justify-content: flex-end; }
+  .sentiment-ind { font-size: 12px; }
+  .wa-status { font-size: 10px; }
+  .wa-status.read { color: #14B8A6; }
+
+  /* Image attachment */
+  .msg-image { width: 220px; height: 150px; background: #374151; border-radius: 8px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; color: #6b7280; font-size: 12px; flex-direction: column; gap: 4px; }
+  .msg-image .cam { font-size: 28px; }
+
+  /* AI Suggestion */
+  .ai-suggest { margin: 0 20px; padding: 14px 16px; background: #0f1629; border: 1px solid #1E22A833; border-radius: 10px; display: flex; align-items: flex-start; gap: 10px; }
+  .ai-suggest .ai-ico { font-size: 22px; flex-shrink: 0; }
+  .ai-suggest .ai-body { flex: 1; }
+  .ai-suggest .ai-label { font-size: 10px; color: #818cf8; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .ai-suggest .ai-text { font-size: 12px; color: #c7d2fe; line-height: 1.5; }
+  .ai-suggest .ai-btns { display: flex; gap: 6px; margin-top: 8px; }
+  .ai-suggest .ai-btns button { font-size: 10px; padding: 4px 12px; border-radius: 5px; border: none; cursor: pointer; font-weight: 600; }
+  .ai-suggest .ai-btns .accept { background: #1E22A8; color: white; }
+  .ai-suggest .ai-btns .edit { background: #1f2937; color: #c7d2fe; border: 1px solid #374151; }
+  .ai-suggest .ai-btns .dismiss { background: transparent; color: #6b7280; }
+
+  /* Input area */
+  .chat-input-area { padding: 14px 20px; background: #111827; border-top: 1px solid #1f2937; }
+  .input-toolbar { display: flex; gap: 5px; margin-bottom: 8px; }
+  .input-toolbar button { background: #1f2937; border: 1px solid #374151; color: #9ca3af; padding: 4px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .input-toolbar button:hover { background: #374151; color: #e1e5ee; }
+  .input-toolbar button.ai { border-color: #1E22A844; color: #818cf8; }
+  .input-toolbar button.ai:hover { background: #0f1629; }
+  .input-toolbar button.note { border-color: #78350f44; color: #FDC41F; }
+  .input-wrapper { display: flex; gap: 8px; }
+  .input-field { flex: 1; background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 10px 14px; color: #e1e5ee; font-size: 13px; resize: none; min-height: 40px; font-family: inherit; }
+  .input-field:focus { outline: none; border-color: #1E22A8; }
+  .send-btn { background: #1E22A8; border: none; color: white; padding: 8px 22px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; align-self: flex-end; }
+  .send-btn:hover { background: #171ba0; }
+
+  /* Right Panel */
+  .right-panel { width: 310px; background: #111827; border-left: 1px solid #1f2937; overflow-y: auto; }
+  .rp-section { padding: 16px; border-bottom: 1px solid #1f2937; }
+  .rp-section h4 { font-size: 10px; text-transform: uppercase; color: #6b7280; margin-bottom: 10px; letter-spacing: 0.5px; font-weight: 600; }
+
+  .cust-card { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .cust-avatar { width: 40px; height: 40px; background: #14B8A6; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #000; }
+  .cust-name { font-size: 14px; font-weight: 600; }
+  .cust-sub { font-size: 10px; color: #6b7280; }
+  .cust-details { display: flex; flex-direction: column; gap: 5px; }
+  .cust-row { display: flex; justify-content: space-between; font-size: 11px; }
+  .cust-row .lbl { color: #6b7280; }
+  .cust-row .val { text-align: right; }
+
+  /* Sentiment gauge */
+  .gauge { text-align: center; }
+  .gauge-bar { height: 8px; background: linear-gradient(to right, #E30513, #FDC41F, #14B8A6); border-radius: 4px; position: relative; margin: 6px 0; }
+  .gauge-marker { position: absolute; top: -4px; width: 16px; height: 16px; background: white; border-radius: 50%; border: 2px solid #0c0e14; transform: translateX(-50%); box-shadow: 0 0 6px rgba(0,0,0,.5); }
+  .gauge-labels { display: flex; justify-content: space-between; font-size: 9px; color: #6b7280; }
+  .gauge-evolution { font-size: 10px; color: #6b7280; margin-top: 6px; }
+  .gauge-evolution .from { color: #E30513; }
+  .gauge-evolution .to { color: #14B8A6; }
+
+  /* SLA */
+  .sla-box { text-align: center; }
+  .sla-countdown { font-size: 24px; font-weight: 700; font-family: 'Courier New', monospace; }
+  .sla-countdown.ok { color: #14B8A6; }
+  .sla-countdown.warn { color: #FDC41F; }
+  .sla-countdown.breach { color: #E30513; }
+  .sla-label { font-size: 10px; color: #6b7280; }
+  .sla-bar { height: 4px; background: #1f2937; border-radius: 2px; margin-top: 6px; overflow: hidden; }
+  .sla-fill { height: 100%; border-radius: 2px; }
+  .sla-fill.ok { background: #14B8A6; }
+  .sla-metrics { display: flex; justify-content: space-between; margin-top: 8px; }
+  .sla-metric { font-size: 10px; }
+  .sla-metric .slbl { color: #6b7280; }
+  .sla-metric .sval { font-weight: 600; }
+  .sla-metric .sval.ok { color: #14B8A6; }
+
+  /* Tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 10px; padding: 3px 8px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #9ca3af; cursor: pointer; }
+  .tag:hover { border-color: #1E22A8; }
+  .tag.add { border-style: dashed; color: #14B8A6; }
+
+  /* AI Summary */
+  .ai-summary { background: #0f1629; border: 1px solid #1E22A833; border-radius: 8px; padding: 10px; font-size: 11px; color: #c7d2fe; line-height: 1.5; }
+  .ai-summary-hdr { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 10px; color: #818cf8; font-weight: 700; }
+
+  /* KB suggestions */
+  .kb-item { padding: 8px 10px; background: #0c0e14; border-radius: 6px; margin-bottom: 5px; cursor: pointer; transition: background .1s; }
+  .kb-item:hover { background: #1f2937; }
+  .kb-item .kb-title { font-size: 11px; font-weight: 500; margin-bottom: 2px; }
+  .kb-item .kb-match { font-size: 10px; color: #14B8A6; }
+
+  /* Product info */
+  .product-card { background: #0c0e14; border-radius: 8px; padding: 10px; display: flex; gap: 10px; align-items: center; }
+  .product-img { width: 50px; height: 50px; background: #FDC41F; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #000; text-align: center; }
+  .product-info .pname { font-size: 12px; font-weight: 600; }
+  .product-info .pdetail { font-size: 10px; color: #6b7280; }
+
+  .watermark { position: fixed; bottom: 6px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #1f2937; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- Sidebar mini -->
+  <div class="sidebar-mini">
+    <div class="sb-brand">SAC</div>
+    <div class="sb-icon" title="Dashboard">&#128200;</div>
+    <div class="sb-icon active" title="Inbox"><span>&#128233;</span><span class="badge">14</span></div>
+    <div class="sb-icon" title="Knowledge Base">&#128218;</div>
+    <div class="sb-icon" title="Analytics">&#128202;</div>
+    <div class="sb-icon" title="Config" style="margin-top:auto; margin-bottom:12px;">&#9881;</div>
+  </div>
+
+  <!-- Ticket list -->
+  <div class="ticket-sidebar">
+    <div class="ts-header">
+      <h3>Inbox</h3>
+      <input type="text" placeholder="Buscar por nome, #ticket, produto..." />
+    </div>
+    <div class="ts-filters">
+      <span class="ts-filter active">Todos</span>
+      <span class="ts-filter">Meus</span>
+      <span class="ts-filter">Sem agente</span>
+      <span class="ts-filter" style="color:#E30513;">SLA!</span>
+    </div>
+    <div class="ts-list">
+      <div class="t-mini active">
+        <div class="t-mini-top">
+          <div class="t-mini-pri critical"></div>
+          <span class="t-mini-num">#SAC-0312</span>
+          <span class="t-mini-time">2min</span>
+        </div>
+        <div class="t-mini-name">Claudia Ferreira</div>
+        <div class="t-mini-preview">Salgadinho Micos veio com gosto estranho...</div>
+        <div class="t-mini-tags"><span class="t-tag rec">REC</span></div>
+      </div>
+      <div class="t-mini">
+        <div class="t-mini-top">
+          <div class="t-mini-pri high"></div>
+          <span class="t-mini-num">#SAC-0311</span>
+          <span class="t-mini-time">8min</span>
+          <div class="unread-dot"></div>
+        </div>
+        <div class="t-mini-name">Distribuidora Norte AM</div>
+        <div class="t-mini-preview">Quero ampliar carteira Crony e Micos na regiao</div>
+        <div class="t-mini-tags"><span class="t-tag rev">REVENDEDOR</span></div>
+      </div>
+      <div class="t-mini">
+        <div class="t-mini-top">
+          <div class="t-mini-pri medium"></div>
+          <span class="t-mini-num">#SAC-0310</span>
+          <span class="t-mini-time">15min</span>
+        </div>
+        <div class="t-mini-name">Renata Lima</div>
+        <div class="t-mini-preview">A batata Refinata tem gluten? Minha filha e celiaca</div>
+        <div class="t-mini-tags"><span class="t-tag inf">INFO</span></div>
+      </div>
+      <div class="t-mini">
+        <div class="t-mini-top">
+          <div class="t-mini-pri high"></div>
+          <span class="t-mini-num">#SAC-0309</span>
+          <span class="t-mini-time">28min</span>
+        </div>
+        <div class="t-mini-name">Supermercado Bom Preco</div>
+        <div class="t-mini-preview">Caixa de Nelita avariada, 3 pacotes abertos</div>
+        <div class="t-mini-tags"><span class="t-tag tro">TROCA</span></div>
+      </div>
+      <div class="t-mini">
+        <div class="t-mini-top">
+          <div class="t-mini-pri medium"></div>
+          <span class="t-mini-num">#SAC-0307</span>
+          <span class="t-mini-time">1h</span>
+        </div>
+        <div class="t-mini-name">Atacadao Goiania</div>
+        <div class="t-mini-preview">2a via NF ref. pedido 8847 marco</div>
+        <div class="t-mini-tags"><span class="t-tag fin">FIN</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <div class="ch-avatar">CF</div>
+      <div class="ch-info">
+        <h3>Claudia Ferreira <span style="font-size:11px; color:#6b7280; font-weight:400;">#SAC-0312</span></h3>
+        <div class="sub">
+          <span class="status-badge open">ABERTO</span>
+          <span>via WhatsApp</span>
+          <span>&#8226;</span>
+          <span>Reclamacao - Qualidade do Produto</span>
+        </div>
+      </div>
+      <div class="ch-actions">
+        <button>Transferir</button>
+        <button>Escalar</button>
+        <button class="resolve">&#10004; Resolver</button>
+      </div>
+    </div>
+
+    <div class="chat-msgs">
+      <div class="msg system">
+        <div class="msg-bubble">
+          Ticket #SAC-0312 criado via WhatsApp &#8226; 05/04/2026 14:52<br/>
+          IA classificou: Reclamacao > Qualidade do Produto &#8226; Prioridade: CRITICA (possivel caso de saude)
+        </div>
+      </div>
+
+      <div class="msg customer">
+        <div class="msg-bubble">
+          Boa tarde! Comprei um pacote de salgadinho Micos sabor queijo no mercado aqui perto e quando abri o gosto estava muito estranho, diferente do normal. Meu filho comeu e esta com dor de barriga. Estou muito preocupada!!
+        </div>
+        <div class="msg-meta">
+          <span>Claudia Ferreira</span>
+          <span>&#8226;</span>
+          <span>14:52</span>
+          <span class="sentiment-ind">&#128545;</span>
+          <span style="color:#E30513; font-size:10px;">-0.91</span>
+        </div>
+      </div>
+
+      <div class="msg customer">
+        <div class="msg-bubble">
+          <div class="msg-image">
+            <span class="cam">&#128247;</span>
+            <span>Foto do pacote + lote</span>
+          </div>
+          O lote esta aqui: L2603-B. Validade 15/09/2026.
+        </div>
+        <div class="msg-meta">
+          <span>Claudia Ferreira</span>
+          <span>&#8226;</span>
+          <span>14:53</span>
+        </div>
+      </div>
+
+      <div class="msg internal">
+        <div class="msg-bubble">
+          URGENTE: Possivel caso de saude. Acionar equipe de Qualidade sobre lote L2603-B (Micos Queijo). Verificar se ha outras reclamacoes deste lote. Planta: Senador Canedo/GO.
+        </div>
+        <div class="msg-meta">
+          <span>14:55</span>
+          <span>&#8226;</span>
+          <span>Vanessa (nota interna)</span>
+        </div>
+      </div>
+
+      <div class="msg agent">
+        <div class="msg-bubble">
+          Ola Claudia, boa tarde! Agradeco por entrar em contato e lamento muito pelo ocorrido. Sua preocupacao e totalmente compreensivel e vamos tratar com maxima urgencia.
+
+Ja registrei o lote L2603-B e acionei nossa equipe de Qualidade para investigacao imediata. Como esta seu filho agora? Se necessario, por favor procure atendimento medico e nos envie o comprovante - a Cicopal se responsabiliza pelos custos.
+        </div>
+        <div class="msg-meta">
+          <span class="wa-status read">&#10004;&#10004; Lido</span>
+          <span>&#8226;</span>
+          <span>14:57</span>
+          <span>&#8226;</span>
+          <span>Vanessa</span>
+        </div>
+      </div>
+
+      <div class="msg customer">
+        <div class="msg-bubble">
+          Ele esta melhor agora, foi so um mal estar. Mas fiquei muito assustada. Obrigada pela rapidez, isso me deixa mais tranquila.
+        </div>
+        <div class="msg-meta">
+          <span>Claudia Ferreira</span>
+          <span>&#8226;</span>
+          <span>15:02</span>
+          <span class="sentiment-ind">&#128528;</span>
+          <span style="color:#FDC41F; font-size:10px;">-0.20</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Suggestion -->
+    <div class="ai-suggest">
+      <div class="ai-ico">&#129302;</div>
+      <div class="ai-body">
+        <div class="ai-label">SUGESTAO DE RESPOSTA (IA) - Baseada na KB: "Protocolo Reclamacao Qualidade"</div>
+        <div class="ai-text">
+          Que bom que ele esta melhor, Claudia! Para nossa investigacao, preciso confirmar alguns dados: 1) Em qual mercado comprou o produto? 2) Voce ainda tem o pacote? Se sim, pode guardar fechado para analise? Vamos enviar um kit de reposicao e um representante pode recolher a amostra. Seu protocolo e #SAC-0312.
+        </div>
+        <div class="ai-btns">
+          <button class="accept">Usar resposta</button>
+          <button class="edit">Editar</button>
+          <button class="dismiss">Ignorar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="input-toolbar">
+        <button class="ai">&#129302; Sugestao IA</button>
+        <button>&#128196; Template</button>
+        <button>&#128206; Anexar</button>
+        <button class="note">&#128221; Nota Interna</button>
+        <button>/ Atalhos</button>
+      </div>
+      <div class="input-wrapper">
+        <textarea class="input-field" placeholder="Digite sua resposta..." rows="1"></textarea>
+        <button class="send-btn">Enviar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="right-panel">
+    <div class="rp-section">
+      <h4>Cliente</h4>
+      <div class="cust-card">
+        <div class="cust-avatar">CF</div>
+        <div>
+          <div class="cust-name">Claudia Ferreira</div>
+          <div class="cust-sub">Consumidor Final</div>
+        </div>
+      </div>
+      <div class="cust-details">
+        <div class="cust-row"><span class="lbl">Telefone</span><span>+55 62 99874-3210</span></div>
+        <div class="cust-row"><span class="lbl">Cidade</span><span>Goiania, GO</span></div>
+        <div class="cust-row"><span class="lbl">Primeiro contato</span><span>Sim (novo)</span></div>
+        <div class="cust-row"><span class="lbl">Tipo</span><span style="color:#14B8A6;">Consumidor</span></div>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <h4>Produto Relacionado</h4>
+      <div class="product-card">
+        <div class="product-img">Micos<br/>Queijo</div>
+        <div class="product-info">
+          <div class="pname">Micos Sabor Queijo</div>
+          <div class="pdetail">Lote: L2603-B | Val: 15/09/2026</div>
+          <div class="pdetail">Planta: Senador Canedo/GO</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <h4>Sentimento</h4>
+      <div class="gauge">
+        <div class="gauge-bar">
+          <div class="gauge-marker" style="left: 40%;"></div>
+        </div>
+        <div class="gauge-labels">
+          <span>&#128545; Irritado</span>
+          <span>&#128528; Neutro</span>
+          <span>&#128578; Satisfeito</span>
+        </div>
+        <div class="gauge-evolution">
+          <span class="from">-0.91</span> &#8594; <span class="to">-0.20</span> (melhorando &#8599;)
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <h4>SLA</h4>
+      <div class="sla-box">
+        <div class="sla-countdown ok">22:55:18</div>
+        <div class="sla-label">Tempo restante resolucao</div>
+        <div class="sla-bar"><div class="sla-fill ok" style="width: 5%;"></div></div>
+        <div class="sla-metrics">
+          <div class="sla-metric"><div class="slbl">1a Resposta</div><div class="sval ok">&#10003; 5min (meta: 30min)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <h4>Tags</h4>
+      <div class="tags">
+        <span class="tag">#qualidade</span>
+        <span class="tag">#micos</span>
+        <span class="tag">#lote-L2603B</span>
+        <span class="tag">#saude</span>
+        <span class="tag">#urgente</span>
+        <span class="tag add">+ Adicionar</span>
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <h4>Resumo IA</h4>
+      <div class="ai-summary">
+        <div class="ai-summary-hdr">&#129302; Gerado automaticamente</div>
+        Consumidora relata alteracao de sabor em Micos Queijo (lote L2603-B). Filho apresentou mal estar apos consumo. Caso classificado como saude/qualidade com prioridade maxima. Equipe de Qualidade acionada. Sentimento melhorando apos resposta rapida. Pendente: coleta da amostra + envio de kit reposicao.
+      </div>
+    </div>
+
+    <div class="rp-section">
+      <h4>Knowledge Base Relevante</h4>
+      <div class="kb-item">
+        <div class="kb-title">Protocolo Reclamacao Qualidade</div>
+        <div class="kb-match">97% relevante</div>
+      </div>
+      <div class="kb-item">
+        <div class="kb-title">Procedimento Coleta de Amostra</div>
+        <div class="kb-match">92% relevante</div>
+      </div>
+      <div class="kb-item">
+        <div class="kb-title">Politica de Reposicao ao Consumidor</div>
+        <div class="kb-match">85% relevante</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="watermark">WIREFRAME - SAC Cicopal | Tela Atendimento Chat v2.0</div>
+</body>
+</html>
