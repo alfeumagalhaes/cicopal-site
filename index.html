@@ -1668,7 +1668,7 @@
     <div class="cta-card cta-revendedor" data-aos="fade-right">
       <h2>Seja um Revendedor</h2>
       <p>Faca parte da rede de distribuicao Cicopal. Oferecemos suporte comercial, materiais de marketing e condicoes especiais para nossos parceiros.</p>
-      <a href="https://www.cicopal.com.br/fale-conosco/seja-um-revendedor/" class="btn btn-white" target="_blank">
+      <a href="#" data-sac-link class="btn btn-white" target="_blank">
         <i data-lucide="handshake" style="width:18px;height:18px"></i>
         Quero ser revendedor
       </a>
@@ -1676,7 +1676,7 @@
     <div class="cta-card cta-trabalhe" data-aos="fade-left">
       <h2>Trabalhe Conosco</h2>
       <p>Estamos sempre a procura de talentos. Aqui voce tera um ambiente de aprendizado, colaboracao e respeito. Mais de 1.800 colaboradores ja fazem parte do time.</p>
-      <a href="https://prd-pc1.lg.com.br/Vagas/grupocicopal/trabalheconosco" class="btn btn-white" target="_blank">
+      <a href="#" data-sac-link class="btn btn-white" target="_blank">
         <i data-lucide="briefcase" style="width:18px;height:18px"></i>
         Ver vagas disponiveis
       </a>
@@ -1709,7 +1709,7 @@
           </div>
           <h3>Fale Conosco</h3>
           <p>Envie sua mensagem pelo nosso formulario online.</p>
-          <p><a href="https://www.cicopal.com.br/fale-conosco/" target="_blank">Acessar formulario &rarr;</a></p>
+          <p><a href="#" data-sac-link target="_blank">Acessar formulario &rarr;</a></p>
         </div>
         <div class="contact-card" data-aos="fade-up" data-aos-delay="200">
           <div class="contact-icon" style="background: var(--teal)">
@@ -1760,7 +1760,7 @@
           <ul>
             <li><a href="#contato">Fale Conosco</a></li>
             <li><a href="#revendedor">Seja Revendedor</a></li>
-            <li><a href="https://prd-pc1.lg.com.br/Vagas/grupocicopal/trabalheconosco" target="_blank">Trabalhe Conosco</a></li>
+            <li><a href="#" data-sac-link target="_blank">Trabalhe Conosco</a></li>
             <li><a href="https://www.contatoseguro.com.br/cicopal" target="_blank">Canal Seguro</a></li>
           </ul>
         </div>
@@ -1789,6 +1789,14 @@
   <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
 
   <script>
+    // ================================================================
+    // CONFIGURACAO SAC — Codigo da empresa no sistema AutomAI
+    // Este codigo conecta o site ao sistema de atendimento SAC.
+    // Para alterar, basta mudar o valor de COMPANY_CODE.
+    // ================================================================
+    var COMPANY_CODE = '7C6HL';
+    var SAC_ATENDIMENTO_URL = 'https://automai.pro/sac/atendimento/' + COMPANY_CODE;
+
     // Init AOS
     AOS.init({
       once: true,
@@ -1872,6 +1880,11 @@
     }, observerOptions);
 
     counters.forEach(c => counterObserver.observe(c));
+
+    // Injetar URL SAC em todos os links [data-sac-link]
+    document.querySelectorAll('[data-sac-link]').forEach(function(el) {
+      el.setAttribute('href', SAC_ATENDIMENTO_URL);
+    });
   </script>
 </body>
 </html>
