@@ -1837,6 +1837,13 @@
       });
     }
 
+    // Injetar URL SAC em todos os links [data-sac-link]
+    // IMPORTANTE: deve rodar ANTES do smooth scroll para que os links
+    // SAC ja tenham href="https://..." e nao sejam capturados pelo handler de "#"
+    document.querySelectorAll('[data-sac-link]').forEach(function(el) {
+      el.setAttribute('href', SAC_ATENDIMENTO_URL);
+    });
+
     // Smooth scroll for nav links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
@@ -1883,10 +1890,6 @@
 
     counters.forEach(c => counterObserver.observe(c));
 
-    // Injetar URL SAC em todos os links [data-sac-link]
-    document.querySelectorAll('[data-sac-link]').forEach(function(el) {
-      el.setAttribute('href', SAC_ATENDIMENTO_URL);
-    });
   </script>
 </body>
 </html>
